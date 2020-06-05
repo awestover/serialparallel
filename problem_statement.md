@@ -1,14 +1,15 @@
 # The parallel or serial scheduling problem
 
-\defn{work efficient}: work is same as serial alg.
+**work efficient**: work is same as serial alg.
 Most parallel algorithms aren't work efficient
 It even matters if the work is different by a constant factor.
 
-Problem: 
+Problem:
+
   - Computer gets a bunch of tasks over time. 
   - Each task has a serial and parallel implementation. 
   - Goal: high throughput
-    - \defn{modified time}: time steps where all tasks given so far
+    - **modified time**: time steps where all tasks given so far
         have been completed.
     - There are $n$ tasks (we don't know $n$ in advance).
     - Goal more formally: minimize total modified time until all tasks are completed.
@@ -24,7 +25,8 @@ parallelism.
 
 This problem has a parameter $p$ (which is fixed. lololololololol).
 
-- Further problem notes:
+Further problem notes:
+
   - The scheduler is alowed to stop tasks and restart them using
       a different implementation
     - unles we want to decide that decisions are irevokable
@@ -33,6 +35,7 @@ This problem has a parameter $p$ (which is fixed. lololololololol).
   - for now assume span is $O(1)$.
 
 Our objective is to prove something like one of these:
+
   - $O(1)$-competitive: i.e. total running time is within a
       constant factor of OPT
   - $O(\log p)$-competitive alg
@@ -43,7 +46,8 @@ Our objective is to prove something like one of these:
     - e.g. all work is divided by resource augmentation factor
 
 
-# misc stuff
+misc stuff
+
   - need to do lit review to make sure it is an open question
   - cool further question: what if the program is recursive????
       [later]
