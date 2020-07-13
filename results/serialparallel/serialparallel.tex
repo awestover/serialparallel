@@ -295,13 +295,13 @@ GRD-gaps could still have OPT-gaps.
 \begin{proof}
   Because \textbf{see my fairly convincing picture} we have
   \begin{align*}
-    T^{OPT}(q_1, \ldots, q_{\ell}) &\ge T^{GRD}(q_2, \ldots, q_\ell) \\
+    T^{OPT}(q_1, \ldots, q_{v}) &\ge T^{GRD}(q_2, \ldots, q_v) \\
   &\ge T^{GRD} - T(q_1)
   \end{align*}
   Hence
   \begin{align*}
-    T^{GRD}(q_1, \ldots, q_\ell) &\le T^{OPT}(q_1, \ldots, q_\ell) + T(q_1) \\
-                                   &\le 2T^{OPT}(q_1, \ldots, q_\ell).
+    T^{GRD}(q_1, \ldots, q_v) &\le T^{OPT}(q_1, \ldots, q_v) + T(q_1) \\
+                                   &\le 2T^{OPT}(q_1, \ldots, q_v).
   \end{align*}
 \end{proof}
 
@@ -310,14 +310,24 @@ GRD-gaps could still have OPT-gaps.
   GRD is $2$-competitive.
 \end{proposition}
 \begin{proof}
-  The proof is by induction on the number of OPT-gaps. 
+  The proof is by strong induction on the number of OPT-gaps. 
   The base case of our induction is established in
   Claim~\ref{clm:no_optgaps}, which says that if there are $0$
   OPT-gaps then GRD is $2$-competitive. 
 
-  Consider a task sequence with its first OPT-gap at time $t_*$.
-  Let $\ell$ be the largest index such that verge time $t_\ell <
-  t_*$
+  Consider a task arrival plan that has more than $0$ OPT gaps;
+  say that its first OPT-gap starts at time $t_*$.
+  Let $j$ be the largest index such that verge time $t_j <
+  t_*$.
+
+  Using our inductive hypothesis we have:
+  \begin{align*}
+  &T^{OPT}(q_1, \ldots, q_v) \\
+  &\ge T^{OPT}(q_1, \ldots, q_j) + T^{OPT}(q_{j+1}, \ldots, q_{v})\\
+  &\ge \frac{1}{2}\paren{T^{GRD}(q_1, \ldots, q_j) + T^{GRD}(q_{j+1}, \ldots, q_{v})}\\
+  &=\frac{1}{2} T^{GRD}(q_1, \ldots, q_v).
+  \end{align*}
+
 \end{proof}
 
 
