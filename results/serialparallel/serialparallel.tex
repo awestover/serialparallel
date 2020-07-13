@@ -1,5 +1,6 @@
-\documentclass[twocolumn]{article}[11pt]
+\documentclass[twocolumn]{article}[10pt]
 \usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+% \usepackage[subtle]{savetrees} 
 
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -151,45 +152,21 @@ implementation of this algorithm, so we can replace the serial
 implementation with the parallel implementation and hence get
 $k=1$, similarly, if $k > p$ then the scheduler should never run
 the parallel task and we can replace the parallel implementation
-of the task with the serial implementation.}.
+of the task with the serial implementation.}. Throughout this
+subsection it is implicit that any task arrival plan we
+refer to consists of identical tasks with serial work $1$ and parallel work $k$.
 
-We say that a time is a \defn{verge} time if no processors are
-performing tasks and there is at least one ready task.
+We say that a time is a \defn{verge} time for our algorithm if at
+this time no processors are performing tasks and there is at
+least one ready task.
 
-{\color{red}
-  CHILL0 is a better algorithm than CHILL, like as in strictly
-  better, but CHILL is more convenient to analyze. There's just a
-  nice bit of symmetry to CHILL that isn't present in CHILL0:
-  CHILL finishes anything less than $p$ in a single valley
-  interval. Anyways CHILL is nicer aesthetically and the proof
-  works, so there. 
-}
-
-We propose Algorithm~\ref{alg:chill}, which we call \defn{CHILL},
+We propose Algorithm~\ref{alg:grd}, which we call \defn{GRD}
+(which stands for \enquote{greedy}),
 for scheduling in the symmetric-tasks case.
 
 \begin{algorithm}
-  \caption{CHILL0}
-  \label{alg:chill0}
-  \begin{algorithmic}
-    \While{True}
-      \If{verge time}
-        \State $q \gets $ number of ready tasks
-        \If{$q \ge p/k$}
-          \State schedule $\min(q, p)$ tasks in serial
-          \State giving each processor at most $1$ task
-        \Else
-          \State schedule one task in parallel
-          \State distributing its work equally 
-        \EndIf
-      \EndIf
-    \EndWhile
-  \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-  \caption{CHILL}
-  \label{alg:chill}
+  \caption{GRD}
+  \label{alg:grd}
   \begin{algorithmic}
     \While{True}
       \If{verge time}
@@ -206,206 +183,141 @@ for scheduling in the symmetric-tasks case.
   \end{algorithmic}
 \end{algorithm}
 
-Before analyzing CHILL we need a little claim: 
+% DO NOT DELETE
+% {\color{red} Similar alternative algorithms:
+%   \begin{itemize}
+%     \item GRD0: if $q < p/k$ schedule $1$ task in parallel.
+%     \item GRD0 is nice because its clearly at least as good as GRD.
+%     \item GRD2: schedule $\floor{q/p}$ tasks to each processor in
+%   serial, then $q' = q\bmod p$, schedule $q'$ tasks in serial or
+%   parallel (whichever minimizes awake time).
+%     \item GRD2 is kind of nice because it means that for GRD2 there
+%   is never any task overlap. I don't like task overlap. We'll see
+%   how GRD tries to WLOG away task overlap, I don't think it's
+%   going to work.
+%   \end{itemize}
+% }
+
+In the rest of this subsection we analyze the competitive-ratio
+of GRD.
+
 \begin{clm}
-  \label{clm:optfinishesbeforeyou}
-  If there is a scheduling algorithm that completes all tasks by
+  \label{clm:OPT_finishes_before_you}
+  If there is a scheduling algorithm ALG that completes all tasks by
   time $t_*$ then OPT finishes all tasks by time $t_*$.
 \end{clm}
 \begin{proof}
+  Say that ALG completes all tasks by time $t_*$.
   Let $t_0 < t_*$ be the most recent time that OPT had no work.
   If OPT has work at time $t_*$ then it was acting sub-optimally,
-  and should steal the strategy of whatever other scheduling
-  algorithm was able to complete all of its work by time $t_*$
-  for use in the interval of time $[t_0, t_*]$.
+  as it could steal the strategy that ALG used on $[t_0, t_*]$ to
+  achieve lower awake time. In particular, for any tasks that
+  arrive in $[t_0, t_*]$ OPT could schedule them as ALG schedules
+  them. We remark that OPT cannot steal all of ALG. 
 \end{proof}
 
-We prove the following regarding CHILL:
+Let $v$ be the number of verge times; note that $v\le n$ which
+in particular is finite. Let $t_i$ be the $i$-th time that is a
+verge time, let $q_i$ be the number of ready tasks at time
+$t_i$, let $\Delta_i t = t_{i+1} - t_i$, let $\Delta_i q =
+q_{i+1} - q_i$. Define $t_0 = -\infty, t_{v+1} = +\infty$; 
+these are not verge times, but are merely defined for convenience.
+We call the interval $(t_i, t_{i+1})$ for $i\in \{0,1,\ldots,
+v\}$ \defn{valley interval $i$}. 
+
+Let $T^{OPT}(q_1, \ldots, q_{v'})$ and $T^{GRD}(q_1, \ldots,
+q_{v'})$ denote the awake time of OPT and GRD respectively on
+the truncation of the task arrival plan that only consists of
+tasks arriving at times before verge time $t_{v'}$ where the
+task arrival plan is such that GRD has $q_i$ ready tasks at verge
+time $t_i$ for all $i \le v'$. Let 
+$$ T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
+We claim that when all work arrives before the first verge time
+$T^{OPT}$ and $T^{GRD}$ are the same, and in particular are $T$.
+\begin{clm}
+  $$T(q) = T^{OPT}(q) = T^{GRD}(q).$$
+\end{clm}
+\begin{proof}
+  If work only arrives before a single verge time, then all the
+  work arrives at the same time. 
+
+  GRD first schedules $p$ tasks in serial for $\floor{q/p}$
+  verge times, which takes time $1\cdot \floor{q/p}$. Then on
+  the final verge time GRD either schedules $q\bmod p$ tasks
+  in serial, which takes time $1$, or schedules $q\bmod p$
+  tasks in parallel, which takes time $(q\bmod p)k/p$; in
+  particular GRD chooses whichever of these options leads to
+  lower awake time. Hence overall on this task arrival plan
+  GRD achieves awake time $T(q)$.
+
+  We now claim that OPT can do no better than this. \textbf{This
+  is pretty clear.} We remark that in this sense GRD is greedy: it
+  \enquote{locally} schedules optimally. 
+
+\end{proof}
+
+An ALG-gap is a interval of time of non-zero length on which
+the scheduling algorithm ALG has completed all tasks, but more
+tasks have yet to arrive.
+\begin{clm}
+  \label{clm:just_consider_gapless}
+  If an algorithm ALG can achieve competitive ratio $r$ on any
+  task arrival plan with no ALG-gaps then it achieves
+  competitive-ratio $r$ on arbitrary task arrival plans.
+\end{clm}
+\begin{proof}
+  If a task arrival plan has ALG-gaps, then we can partition the
+  tasks based on arrival time, splitting the tasks into the same
+  group if the interval of time book-ended by their arrival times
+  has no ALG-gaps in it. In particular, we can define intervals
+  $I_1, \ldots, I_g$ of time such that there are no ALG-gaps on
+  $I_i$ for all $i\le g$, and such that some tasks arrive in $I_i$.
+  By Claim~\ref{clm:OPT_finishes_before_you} an ALG-gap is also an
+  OPT-gap. 
+  Let $T_{I_i}^{OPT}$ and $T_{I_i}^{ALG}$ denote the awake time
+  of OPT and ALG on interval $I_i$. Note that clearly
+  $T^{OPT} = \sum_{i} T_{I_i}^{OPT}$ and $T^{ALG} = \sum_{i}
+  T_{I_i}^{ALG}$. Hence if $T_{I_i}^{ALG} \le 2T_{I_i}^{OPT}$ for
+  all $i$ then $T^{ALG} \le 2T^{OPT}$, as desired.
+  
+\end{proof}
+
+By Claim~\ref{clm:just_consider_gapless}, in order to bound GRD's
+competitive-ratio, it suffices to consider task arrival plans
+without GRD-gaps. Note however that a task arrival plan without
+GRD-gaps could still have OPT-gaps.
+
+\begin{clm}
+  \label{clm:no_optgaps}
+  GRD is $2$-competitive on any task arrival plan with no
+  OPT-gaps.
+\end{clm}
+\begin{proof}
+  Because \textbf{see my fairly convincing picture} we have
+  \begin{align*}
+    T^{OPT}(q_1, \ldots, q_{\ell}) &\ge T^{GRD}(q_2, \ldots, q_\ell) \\
+  &\ge T^{GRD} - T(q_1)
+  \end{align*}
+  Hence
+  \begin{align*}
+    T^{GRD}(q_1, \ldots, q_\ell) &\le T^{OPT}(q_1, \ldots, q_\ell) + T(q_1) \\
+                                   &\le 2T^{OPT}(q_1, \ldots, q_\ell).
+  \end{align*}
+\end{proof}
+
 \begin{proposition}
   \label{prop:2competitive}
-  CHILL is 2-competitive with OPT in the symmetric-tasks case of
-  the Serial-Parallel Scheduling Problem. 
+  GRD is $2$-competitive.
 \end{proposition}
 \begin{proof}
-  Let $v$ be the number of verge times; note that $v\le n$ which
-  in particular is finite. Let $t_i$ be the $i$-th time that is a
-  verge time, let $q_i$ be the number of ready tasks at time
-  $t_i$, let $\Delta_i t = t_{i+1} - t_i$, let $\Delta_i q =
-  q_{i+1} - q_i$. Define $t_0 = -\infty, t_{v+1} = +\infty$; 
-  these are not verge times, but are merely defined for convenience.
-  We call the interval $(t_i, t_{i+1})$ for $i\in \{0,1,\ldots,
-  v\}$ \defn{valley interval $i$}. 
+  The proof is by induction on the number of OPT-gaps. 
+  The base case of our induction is established in
+  Claim~\ref{clm:no_optgaps}, which says that if there are $0$
+  OPT-gaps then GRD is $2$-competitive. 
 
-  Let $T^{OPT}(q_1, \ldots, q_{v'})$ and $T^{CHILL}(q_1, \ldots,
-  q_{v'})$ denote the awake time of OPT and CHILL respectively on
-  the truncation of the task arrival plan that only consists of
-  tasks arriving at times before verge time $t_{v'}$ where the
-  task arrival plan is such that CHILL has $q_i$ ready tasks at verge
-  time $t_i$ for all $i \le v'$. Let 
-  $$ T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
-
-  \begin{clm}
-    $$T(q) = T^{OPT}(q) = T^{CHILL}(q).$$
-  \end{clm}
-  \begin{proof}
-    If work only arrives before a single verge time, then all the
-    work arrives at the same time. 
-
-    CHILL first schedules $p$ tasks in serial for $\floor{q/p}$
-    verge times, which takes time $1\cdot \floor{q/p}$. Then on
-    the final verge time CHILL either schedules $q\bmod p$ tasks
-    in serial, which takes time $1$, or schedules $q\bmod p$
-    tasks in parallel, which takes time $(q\bmod p)k/p$; in
-    particular CHILL chooses whichever of these options leads to
-    lower awake time. Hence overall on this task arrival plan
-    CHILL achieves awake time $T(q)$.
-
-    We now claim that OPT can do no better than this. This is clear.
-    We remark that in this sense CHILL is greedy: it
-    \enquote{locally} schedules optimally. 
-
-  \end{proof}
-
-
-  In proving Proposition~\ref{prop:2competitive} we only need to
-  consider the case where there are no \defn{gaps}
-  in the $t_i$'s --- intervals of time on which all ready tasks
-  have already been completed  by CHILL --- i.e. where $\Delta_i t$ is always
-  either $q_i k/p$ if at time $t_i$ $q_i$ tasks where scheduled in
-  parallel or $1$ if at time $t_i$ some tasks are scheduled in
-  serial. Considering such a case suffices because if there is a
-  task sequence with gaps in it then we can decompose it into
-  subsets without gaps, and we can analyze each of these segments
-  separately because by Claim~\ref{clm:optfinishesbeforeyou} if
-  CHILL finishes all its tasks by some time, then so does OPT, so
-  the gaps for CHILL are gaps for OPT as well. 
-
-  \begin{clm}
-    \label{clm:l=0}
-   If $\ell = 0$, meaning that there is exactly one time when work
-  arrives, then CHILL achieves the same awake time as OPT. 
-  That is, 
-  $$T_0^{CHILL} = T_0^{OPT} \le 2T_0^{OPT}.$$
-  \end{clm}
-  \begin{proof}
-  We consider cases on $q_1$. 
-
-  If $q_1 < p/k$ OPT and CHILL both choose to schedule every task
-  in parallel distributing work equally, and they thus both
-  attain awake time $q_1 k/p$.
-
-  If $p/k \le q_1 \le p$ both CHILL and OPT achieve awake time
-  $1$ by scheduling all tasks in serial (except maybe when $q_1 =
-  p/k$ OPT schedules all tasks in parallel, which still achieves
-  awake time $1$). 
-
-  If $q_1 > p$, then both OPT and CHILL will
-  spend time $\floor{q_1/p}$ to reduce the number of unscheduled
-  ready tasks to be below $p$, and then based on the value of
-  $q_1\bmod p$ will either spend $1$ time to process the final
-  group of tasks or time $(q_1\bmod p) k/p$ to process all the
-  tasks (they choose whichever of these is smaller). 
-
-  In summary, when $\ell=0$ CHILL achieves the exact same awake
-  time as OPT, in particular awake time $T(q_1)$, although
-  possibly with a slightly different schedule. We remark that in
-  this sense CHILL is greedy: it \enquote{locally} schedules
-  optimally. 
-    
-  \end{proof}
-
-  \begin{clm}
-    \label{clm:l=1}
-    $$T_1^{CHILL} \le 2T_1^{OPT}.$$
-  \end{clm}
-  \begin{proof}
-  We now consider $\ell=1$, meaning that some initial tasks come at
-  some time, and then during valley interval $1$ some more tasks
-  come. It may seem scary that new tasks can come in during the
-  interval and the scheduler will not react to them until the end
-  of the valley interval. In particular, one can imagine that the
-  filler schedules some tasks in serial, and then immediately
-  after the start of the valley interval more tasks arrive which
-  could immediately be scheduled in serial by OPT, but will not
-  be scheduled by CHILL until the end of the valley interval.
-  However, if many tasks arrive during a valley interval, then
-  the scheduler will be able to schedule many tasks during the
-  next valley interval, which is good, and if few tasks arrive
-  during the valley interval, then it doesn't really matter that
-  they arrived. We now formalize this intuition. We again
-  consider cases on $q_1$.
-
-  $$T^{CHILL} = T(q_1) + T(q_2)$$
-  $$T^{OPT} \ge T(q_1 + q_2)\ge \max(T(q_1), T(q_2))$$
-
-  % In the case where $q_1 < p/k$ then CHILL schedules a task in
-  % parallel, and then at time $t_2$ schedules optimally (by our
-  % analysis of the case $\ell=1$). OPT could possibly do a tiny
-  % bit better than this: if $q_2 > p/k$ then it is possibly
-  % advantageous to schedule tasks in serial at time $t_1$.
-  % However, in this case the ratio of their awake times is at
-  % most $(T^{OPT} + k/p)/T^{OPT}$ which as $T^{OPT} \ge 1$ and
-  % $k/p \le 1$ is less than $2$. On the other hand, if $q_2 < p/k$
-  % then CHILL was actually acting optimally. 
-
-  In the case where $q_1 < p/k$ then CHILL schedules $q_1$ tasks in
-  parallel, and then at time $t_2$ schedules optimally (by our
-  analysis of the case $\ell=1$). OPT could possibly do better
-  than this: if $q_2 > p/k$ then it is possibly
-  advantageous to schedule tasks in serial at time $t_1$.
-  However, in this case the ratio of their awake times is at
-  most $(T^{OPT} + q_1 k/p)/T^{OPT}$ which as $T^{OPT} \ge 1$ and
-  $q_1 k/p \le 1$ is less than $2$. On the other hand, if $q_2 < p/k$
-  then CHILL was actually acting optimally. 
-
-  In the case where $q_1 \ge p/k$ then CHILL schedules $\min(q_1,
-  p)$ tasks in serial at time $t_1$, and then schedules optimally
-  starting from time $t_2$ (according to our analysis of the case
-  $\ell=1$). The ratio of their awake times is at most
-  $(T^{OPT}+1)/T^{OPT}$ which since $T^{OPT} \ge 1$ is at most
-  $2$.
-
-  Having analyzed both the case of large $q_1$ and small $q_1$ we have
-  that $T_1^{CHILL} \le 2T_1^{OPT}$. 
-  \end{proof}
-
-
-  \begin{clm}
-    \label{clm:inductivestep}
-    Say that for some task arrival plan 
-  $T_{\ell-1}^{CHILL} \le 2T_{\ell-1}^{OPT}$ and
-  $T_\ell^{CHILL} \le 2T_\ell^{OPT}$. Then 
-  $T_{\ell+1}^{CHILL} \le 2T_{\ell+1}^{OPT}$.
-  \end{clm}
-  \begin{proof}
-    Basically without loss of generality $q_1, \Delta_1 q,
-    \Delta_2 q \le p$ because these blocks of $p$ things may as
-    well be handled the same way by OPT and CHILL. 
-
-    This is immediately evident if $q_1 \ge p/k$ and $p/k \le q_2 \le p$,
-    because in this case $T_{\ell+1}^{CHILL} = 2 + T_{\ell -1}^{CHILL}$
-    and $T_{\ell+1}^{OPT} \ge 1 + T_{\ell-1}^{OPT}$ so
-    $T_{\ell+1}^{CHILL} \le 2T_{\ell+1}^{OPT}$. 
-
-    In fact even with just the assumption $q_1 \ge p/k$ the proof
-    is clear, because in this case
-
-    Basically here's how it goes:
-    $T_{\ell+1}^{CHILL} = T_{\ell-1}^{CHILL} + \text{something
-    for } \Delta_{\ell-1} q + \text{something for } \Delta_\ell q$
-
-    $T_{\ell+1}^{OPT} \ge \min(T_{\ell-1}^{OPT} + \text{something
-    for } \Delta_{\ell} q, T_{\ell}^{OPT} + \text{something for }
-    \Delta_{\ell-1} q).$
-
-    This works out to $T_{\ell+1}^{CHILL} \le 2T_{\ell+1}^{OPT}$.
-  \end{proof}
-
-  By (strong) induction on $\ell$ using Claim~\ref{clm:inductivestep} and the
-  base cases of Claim~\ref{clm:l=0} and Claim~\ref{clm:l=1} we
-  have that for any task arrival plan no matter what $\ell$
-  is, $T_{\ell}^{CHILL} \le 2T_{\ell}^{OPT}$, as desired.
-
+  Consider a task sequence with its first OPT-gap at time $t_*$.
+  Let $\ell$ be the largest index such that verge time $t_\ell <
+  t_*$
 \end{proof}
 
 
@@ -434,12 +346,12 @@ The work of the serial and parallel implementations of a
 virtual-task are the sums of the works of the serial and parallel
 implementations of the virtual-tasks constituent tasks.
 
-We propose Algorithm~\ref{alg:levelchill}, which we call \defn{LEVELCHILL},
+We propose Algorithm~\ref{alg:levelgrd}, which we call \defn{LEVELGRD},
 for scheduling in the symmetric-cost-ratio case.
 
 \begin{algorithm}
-  \caption{LEVELCHILL}
-  \label{alg:levelchill}
+  \caption{LEVELGRD}
+  \label{alg:levelgrd}
   \begin{algorithmic}
     \While{True}
       \If{verge time}
@@ -458,7 +370,7 @@ for scheduling in the symmetric-cost-ratio case.
   \end{algorithmic}
 \end{algorithm}
 
-We prove the following regarding LEVELCHILL:
+We prove the following regarding LEVELGRD:
 
 
 \subsection{General Case}
@@ -467,12 +379,12 @@ restrictions on the tasks in this Subsection.
 We use the definitions from Subsection
 \ref{subsec:symmetriccostratio} and Subsection
 \ref{subsec:symmetrictasks}.
-We propose Algorithm~\ref{alg:generalchill}, which we call
-\defn{GENERALCHILL}.
+We propose Algorithm~\ref{alg:generalgrd}, which we call
+\defn{GENERALGRD}.
 
 \begin{algorithm}
-  \caption{GENERALCHILL}
-  \label{alg:generalchill}
+  \caption{GENERALGRD}
+  \label{alg:generalgrd}
   \begin{algorithmic}
     \While{True}
       \If{verge time}
@@ -491,9 +403,9 @@ We propose Algorithm~\ref{alg:generalchill}, which we call
   \end{algorithmic}
 \end{algorithm}
 
-We claim the following regarding GENERALCHILL:
+We claim the following regarding GENERALGRD:
 \begin{proposition}
-  GENERALCHILL is $8$-competitive with OPT.
+  GENERALGRD is $8$-competitive with OPT.
 \end{proposition}
 \begin{proof}
   eh, how bad could it possibly be
@@ -588,12 +500,12 @@ be some inputs on which the algorithm will perform poorly.
 By employing randomization these worst case inputs can be
 mitigated somewhat, at least in expectation.
 
-We propose Algorithm~\ref{alg:randchill}, which we call
-\defn{RANDCHILL}, for this case.
+We propose Algorithm~\ref{alg:randgrd}, which we call
+\defn{RANDGRD}, for this case.
 
 \begin{algorithm}
-  \caption{RANDCHILL}
-  \label{alg:randchill}
+  \caption{RANDGRD}
+  \label{alg:randgrd}
   \begin{algorithmic}
     \While{True}
       \If{verge time}
@@ -613,7 +525,7 @@ We propose Algorithm~\ref{alg:randchill}, which we call
 \end{algorithm}
 
 \begin{proposition}
-  The expectation of RANDCHILL's competitive-ratio on any input
+  The expectation of RANDGRD's competitive-ratio on any input
   is at least $1.5$.
 \end{proposition}
 \begin{proof}
@@ -626,8 +538,8 @@ First we must formalize this problem. Like what does
 this even mean?
 
 \section{Conclusions}
-CHILL is a pretty good algorithm. 
-An interesting question is: CHILL seems pretty dumb, why is it
+GRD is a pretty good algorithm. 
+An interesting question is: GRD seems pretty dumb, why is it
 so good then? I'm not totally sure.
 
 \bibliographystyle{plain}
