@@ -1,0 +1,200 @@
+\documentclass{article}[11pt]
+\usepackage[subtle]{savetrees}
+\usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{Alek Westover}
+\rhead{}
+\usepackage{hyperref}
+\usepackage{xspace}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode} % adding [noend] deletes the end while and stuff
+
+
+\newcommand{\defn}[1]{{\textit{\textbf{\boldmath #1}}}\xspace}
+\renewcommand{\paragraph}[1]{\vspace{0.09in}\noindent{\bf \boldmath #1.}} 
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\text{Var}}
+
+\DeclareMathOperator{\img}{Img}
+\DeclareMathOperator{\polylog}{\text{polylog}}
+\DeclareMathOperator{\st}{\text{ such that }}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\interior}[1]{ {\kern0pt#1}^{\mathrm{o}} }
+\newcommand{\mb}{\mathbf}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\z}{\mathbf{z}}
+\renewcommand{\d}{\mathrm{d}} %straight d for integrals
+\renewcommand{\Re}{\mathrm{Re}}
+\renewcommand{\Im}{\mathrm{Im}}
+
+\newcommand{\setof}[2]{\left\{ #1\; : \;#2 \right\}}
+\newcommand{\set}[1]{\left\{ #1\right\}}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\contr}{\[ \Rightarrow\!\Leftarrow \]}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\paren}[1]{\left( #1 \right)}
+
+\usepackage[capitalise,nameinlink,noabbrev]{cleveref}
+\crefname{equation}{}{} % cref{eq:blah} only does (1) instead of Equation (1)
+\crefname{enumi}{Step}{} % cref{eq:blah} only does (1) instead of Item(1)
+
+\newtheorem{fact}{Fact}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{claim}{Claim}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\usepackage{mdframed}
+\newmdtheoremenv{q}{Question}[section]
+\newenvironment{ans}
+  { \emph{Solution.}}
+  {$ $\\\noindent\rule{\textwidth}{1pt}}
+
+
+\begin{document}
+\begin{center}
+\begin{Large}
+	Alek Westover \\
+	\vspace{2mm}
+	Math 
+\end{Large}
+\end{center}
+\thispagestyle{empty}
+
+\section{chill}
+\begin{algorithm}
+  \caption{Alg chill}
+  \begin{algorithmic}[1]
+    \Procedure{chill}{}
+    \While{True}
+      \If{all processors are idle}
+        \If{If there are more than $p/k$ queued tasks}
+          \State schedule all (or $p$) in serial
+        \Else
+          \State Schedule one in parallel
+        \EndIf
+      \EndIf
+    \EndWhile
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+You can probably do a similar thing for the non-symmetric case.
+The main idea is locally be greedy, but also lazy about
+scheduling.
+So in the non-symmetric case you'd probably be like ``if all
+processors are idle, schedule in a good way."
+
+
+\section{Alg X}
+
+% number of tasks queued $\bmod p$ is interesting.
+% it's pretty clear that in the symmetric case if you accumulate
+% $p$ queued tasks you should just run them all in serial, hence
+% you should just forget about them
+\begin{algorithm}
+  \caption{Alg X}
+  \label{alg:nonharmfultermination}
+  \begin{algorithmic}[1]
+    \State This procedure is continuously running.
+    \Procedure{X}{}
+    \If{there are more than $p/k$ queued tasks $\bmod p$}
+      \For{each task running in parallel}
+        \If{it has more than $1$ total work left \textbf{and} the number of queued tasks $\bmod p$ is at most $p-1$}
+          \State kill this task it (i.e. put it on the queue)
+        \EndIf
+      \EndFor
+      \State Schedule as many queued tasks as possible to
+      processros that have less than $1$ work assigned to them.
+      (scheduling to minimize backlog, i.e. scheduling in
+      ascending order of backlog)
+    \EndIf
+    \If{There is an idle processor}
+      \If{There is a queued task}
+        \If{backlog $\ge 1$}
+          \State schedule tasks in serial on any idle processors
+        \EndIf
+        \If{backlog $< 1$}
+          \State schedule a task in parallel, scheduling as
+          balancedly as possible
+        \EndIf
+      \EndIf
+      \If{There is no queued task \textbf{and} there is a serial
+      task that could be cancelled and then redistributed that
+    would result in all cups that are getting the redistribution
+  stuff end up with less work than the thing that was cancelled
+from}
+        \State Cancel the serial task and reschedule as specified
+      \EndIf
+    \EndIf
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{claim}
+  Alg X is good.
+\end{claim}
+\begin{proof}
+  This seems basically impossible to prove, it's a super
+  complicated algorithm with so much branching. 
+\end{proof}
+
+\section{some more strategies}
+
+\begin{itemize}
+  \item randomized (smoothed analysis)
+  \item look at discrete version?
+\end{itemize}
+
+
+\begin{algorithm}
+  \caption{Randomized alg}
+  \begin{algorithmic}[1]
+    \State This procedure is continuously running.
+    \Procedure{randomizedStrategy}{}
+    \State 
+    \If{backlog would be made smaller by cancelling everything
+    and swapping the mode, and scheduling everything according ot
+  the new mode}
+      \State do it!
+    \EndIf
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Alg binary}
+  \begin{algorithmic}[1]
+    \State This procedure is continuously running.
+    \Procedure{binary}{mode}
+    \State when you get a new task schedule it to minimize
+    backlog in the current mode (mode is serial or parallel)
+    \If{backlog would be made smaller by cancelling everything
+    and swapping the mode, and scheduling everything according ot
+  the new mode}
+      \State do it!
+    \EndIf
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\end{document}

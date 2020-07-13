@@ -1,0 +1,441 @@
+\documentclass{article}[11pt]
+\usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{Alek Westover}
+\rhead{}
+\usepackage{hyperref}
+\usepackage{xspace}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode} % adding [noend] deletes the end while and stuff
+
+\newcommand{\defn}[1]{{\textit{\textbf{\boldmath #1}}}\xspace}
+\renewcommand{\paragraph}[1]{\vspace{0.09in}\noindent{\bf \boldmath #1.}} 
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\text{Var}}
+\DeclareMathOperator{\img}{Img}
+\DeclareMathOperator{\polylog}{\text{polylog}}
+\DeclareMathOperator{\st}{\text{ such that }}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\interior}[1]{%
+  {\kern0pt#1}^{\mathrm{o}}%
+}
+\newcommand{\mb}{\mathbf}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\z}{\mathbf{z}}
+\renewcommand{\d}{\mathrm{d}} %straight d for integrals
+\newcommand{\De}{\Delta}
+\renewcommand{\Re}{\mathrm{Re}}
+\renewcommand{\Im}{\mathrm{Im}}
+\newcommand{\setof}[2]{\left\{ #1\; : \;#2 \right\}}
+\newcommand{\set}[1]{\left\{ #1\right\}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\contr}[0]{\[ \Rightarrow\!\Leftarrow \]}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+
+\newtheorem{fact}{Fact}
+\newtheorem{clm}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\usepackage{mdframed}
+\newmdtheoremenv{q}{Question}[section]
+\newenvironment{ans}
+  { \emph{Solution.}}
+  {$ $\\\noindent\rule{\textwidth}{1pt}}
+
+
+\begin{document}
+\begin{center}
+\begin{Large}
+	Alek Westover \\
+	\vspace{2mm}
+  To Schedule in Parallel, or To Schedule in Serial, That is the
+  Question?
+\end{Large}
+\end{center}
+\thispagestyle{empty}
+
+\section{TODO}
+
+\begin{itemize}
+  \item prove / disprove the claim ``LNPU is $2$-competitive in
+    single-task version"
+  \item prove / disprove the claim ``HnH is $2$-competitive in
+    single-task version"
+  \item prove / disprove the claim ``LNPU is $2$-competitive in
+    multi-task version"
+  \item prove / disprove the claim ``HnH is $2$-competitive in
+    multi-task version"
+  \item prove / disprove the claim ``Threshold is $O(1)$-competitive in
+    single-task version"
+  \item generalize the threshold strategy
+  \item recursion
+\end{itemize}
+
+\section{Introduction}
+A parallel algorithm is said to be \defn{work-efficient} if the
+work of the parallel algorithm is the same as the work of a
+serial algorithm for the same problem.
+Most implementations of parallel algorithms aren't work
+efficient, they may have asymptotically greater work than the
+parallel version.
+
+Imagine we have to perform $n$ tasks $\tau_1, \ldots, \tau_n$
+($n$ unknown ahead of time). 
+Say that we have $p$ processors $\rho_1, \ldots, \rho_p$.
+Each task $\tau_i$ has a parallel implementation with work
+$\pi_i$ and a serial implementation with work $\sigma_i$.
+We will model time as a series of time steps. In particular,
+times are non-negative integers.
+The works $\pi_i, \sigma_i$ are expressed in units of time-steps.
+The tasks will become available at some time steps $t_1, 
+\ldots, t_n$. At time step $t_i$ the scheduler must decide
+whether to run task $\tau_i$ using its parallel implementation or
+its serial implementation. Fix some time step $t$. Intuitively,
+if there are many $i$ such that $t_i = t$, i.e. if many tasks
+arrive on a single time step, then the serial implementations of
+the tasks should be run because the scheduler can achieve
+parallelism accross the tasks. On the other hand, if there are
+not very many tasks that arrive in a given time step $t$ it might
+be better for the scheduler to run the parallel versions of these
+tasks -- even though they are possibly not work efficient, i.e.
+$\pi_i > \sigma_i$ -- because then at least the scheduler can
+achieve parallelism within tasks.
+
+Let $w_i(t)$ be the unfinished work assigned to the $i$-th
+processor at the start of the $t$-th time step.
+Let $w_i'(t)$ be the unfinished work assigned to the $i$-th
+processor after the scheduler has scheduled new work to
+processors on the $t$-th time step, but before the processors
+have done any work. Note that by definition processors all do $1$
+unit of work per time step (unless there is less than $1$ unit of
+work to be done, in which case they just do all the available
+work). Hence $w_i(t+1) = \max(0, w_i'(t) - 1)$.
+
+Let $\max_i w_i(t)$ be called the backlog on time step $t$.
+There is unfinished work on a time step $t$ if $\sum_{i=1}^p
+w_i(t) > 0$, or you could say $\max_i w_i(t) > 0$.
+Let the \defn{awake time} of the scheduler be the number of time
+steps that it has unfinished work.
+The scheduler attempts to minimize awake time.
+
+We measure how well the scheduler is able to minimize its awake
+time by comparing its awake time to the awake time of the optimal
+strategy, which we will denote OPT.
+Specifically, the \defn{competitive ratio} of a scheduler is the ratio
+of its awake time to the awake time of OPT on the same input.
+
+\paragraph{Results}
+We prove some bounds on this.
+
+\section{Special Case: A Single Task}
+First we consider a special case: where there is a single task
+that must be performed many times.
+We prove the following result about this case:
+
+\begin{proposition}
+  Let $\tau_1, \ldots, \tau_n$ be task all with $k$ as the
+  running time of their serial implementations, and with
+  $k\cdot r$ as the running time of their parallel
+  implementations. Then there is a scheduling algorithm that is
+  $O(\sqrt{k})$-competitive with OPT in terms of backlog.
+  Furthermore, any such algorithm for this problem is at least
+  $\Omega(\sqrt{k})$ times slower than OPT on some input.
+\end{proposition}
+\begin{proof}
+  The algorithm proceeds in 2 steps.
+  Consider some time step $t$. 
+  First the algorithm schedules the serial implementation of
+  $$\Big\lfloor\frac{(\max_j w_j(t)) - w_i(t)}{k} \Big\rfloor$$
+  tasks to every processor $\rho_i$, or if this is not possible,
+  it does an arbitrary appropriately large subset of these
+  assignments. This pretty much doesn't matter, because dumping
+  stuff into processors that are more than a task ahead of the
+  most behind processor a) obviously doesn't increase the
+  backlog, and b) it's not like you wanna do parallel versions of
+  these things.
+
+  So by now it's pretty clear that any scheduler might as well
+  first doing this.\footnote{For a while I was thinking about
+  maybe even letting these guys rise to some $\epsilon > 0$ above
+the backlog. But then I was like, maybe lets not.}
+
+  Anyways, what about if $m>0$ tasks are left after the tasks
+  have been packed in?
+  In this case, the algorithm does chooses what to do by
+  comparing $m$ to a threshold $T$. If $m < T$ then the scheduler
+  says ok thats not too many tasks, lets schedule their parallel
+  implementations, scheduling them to basically try to equalize
+  all the fills. So like in particular, find the largest $x$ such
+  that you can raise the $x$ least full cups to all have uniform
+  fill and then raise these cups to as high as you can.
+  On the other hand, if $m \ge T$ then the scheudler is like, ok
+  that's enough tasks that we can just get parallelism accross
+  tasks, let's just schedule them all in serial, scheduling them
+  to the $m$ least busy processors.
+
+  It turns out that $T = \Theta\left(\frac{p}{r\sqrt{k}}\right)$
+  is a pretty decent choice of $T$.
+
+  OK so anyways, let's look at two nasty configuration of tasks
+  to get some intuition for why $\Omega(\sqrt{k})$ can't be beat
+  and why the alg described above achieves a
+  $O(\sqrt{k})$-competitive ratio. 
+
+  OK so one nasty thing that could happen is if there was a time
+  step when $T+1$ tasks arived, and then no tasks ever arived
+  again. If we could see into the future we would be like, ok,
+  that's not too many tasks, lets just schedule the paralallel
+  implementations of the tasks. But we are stuck without the
+  ability to see the future. Dang. So anyways, this is just above
+  the threshold we decided on for when to run serial
+  implementations of the tasks. So we do it, and it takes about
+  $k$ time steps. On the other hand OPT is going to do
+  everything in parallel, so it finishes in time $T k r / p$ ish
+  which is like $\sqrt{k}$ time steps.
+
+  Another nasty thing is if $T-1$ tasks came on consecutive time
+  steps for $p/(T-1)$ time steps. So at this point you might be
+  like dang you should be aborting tasks and switching to serial
+  implementations. Well this is a fair point. But ignoring that,
+  OPT would get $p/T = r\sqrt{k}$ running time, wheras its gonna take our alg
+  about $kr$ time steps.
+
+  So intuitively, we've looked at the worst stuff that could
+  happen. Which is why I kinda feel like you can't beat this, and
+  that our alg achieves this. 
+
+  Of course this isn't a proof.
+
+  In fact, I no longer believe the claim, at least if we are
+  allowed to terminate and restart tasks! 
+
+  I'll work on it.
+
+Yeah so turns out that the strategy that I proposed above is
+\textbf{really not great}.
+
+\end{proof}
+
+\section{Single-Task Special Case, Now With Termination}
+Now we demonstrate a good strategy when you're allowed to
+terminate.
+
+Note that OPT never terminates anything. 
+
+\begin{proposition}
+  We can do pretty well.
+\end{proposition}
+\begin{proof}
+
+  First we need two definitions. Call a processor $\rho_i$
+  under-loaded at time step $t$ if $w_i(t) < k$. Call a processor
+  $\rho_i$ bored at time step $t$ if $w_i(t) < 1$.
+
+  The strategy is detailed in Algorithm \ref{alg:thresh}.
+
+  \begin{algorithm}
+    \caption{NonHarmfullTermination}
+    \label{alg:nonharmfultermination}
+    \begin{algorithmic}[1] 
+      \Procedure{NonHarmfullTermination}{$t$}
+          \While{bored processors remain \textbf{and} there are
+          procesors whose fill could be reduced by terminating a
+          serial they are running, and distributing the parallel
+          implementation's work amongst some processors without
+        making those processors have $w_i'(t) > 1$}
+            \State Terminate the most full processor's serial task
+            \State Distribute its work amongst bored processors
+            $\rho_i$, without making any $w_i(t) > 1$ 
+          \EndWhile
+      \EndProcedure
+    \end{algorithmic}
+  \end{algorithm}
+
+  \begin{algorithm}
+    \caption{Threshold it}
+    \label{alg:thresh}
+    \begin{algorithmic}[1] 
+      \Procedure{Move}{$t, m$} \Comment{Schedule $m$ tasks (arrived plus stored) on time step $t$}
+        \State $b\gets $ number of bored processors at time step
+        $t$ \Comment{i.e. processors $\rho_i$ with $w_i(t) < 1$}
+        \If{$m \ge b$}
+            \State Schedule $b$ tasks in serial on the bored processors.
+        \ElsIf{$b > m \ge b/r$}
+          \State Schedule $m$ tasks in serial on the
+          bored processors that have the least amount of work. 
+          \State Run NonHarmfullTermination$(t)$
+          \ElsIf{$ b/r > m\ge b/(kr)$}
+            \State Schedule $kr$ tasks in parallel on the bored processors.
+          \ElsIf{$m < u/(kr)$}
+            \State Run NonHarmfullTermination$(t)$
+        \EndIf
+    \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+Algorithm \ref{alg:hmmm} is another pretty interesting strategy.
+
+  \begin{algorithm}
+    \caption{Leave no Parallel Task Undone}
+    \label{alg:hmmm}
+    \begin{algorithmic}[1] 
+      \Procedure{Move}{$t, m$} \Comment{Schedule $m$ tasks (arrived plus stored) on time step $t$}
+        \State $b\gets $ number of bored processors at time step $t$ \Comment{i.e. processors $\rho_i$ with $w_i(t) < 1$}
+        \State Schedule $\min(m, b)$ tasks in serial to the bored processors.
+        \State Run NonHarmfullTermination$(t)$
+    \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Half and Half}
+  \label{alg:halfnhalf}
+  \begin{algorithmic}[1] 
+    \State Choose half of the cups to be in the serial pile and
+    half of the cups to be in the parallel pile.
+    \Procedure{Move}{$t, m$} \Comment{Schedule $m$ tasks (arrived plus stored) on time step $t$}
+    \State Schedule any tasks that come in to the serial pile cups
+    (schedule like this such that you minimize backlog).
+    \State Take serial tasks from the most full cups in the
+    serial pile of cups and distribute them evenly amongst the
+    parallel pile cups, until this would necessarily result in a
+    cup having more than $1$ as its average fill.
+  \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Half and Half version 2}
+  \label{alg:halfnhalfv2}
+  \begin{algorithmic}[1] 
+    \State Choose half of the cups to be in the serial pile and
+    half of the cups to be in the parallel pile.
+    \Procedure{Move}{$t, m$} \Comment{Schedule $m$ tasks (arrived plus stored) on time step $t$}
+    \State Schedule any tasks that come in to the serial pile cups
+    (schedule like this such that you minimize backlog).
+    \State Take serial tasks from the cups in the
+    serial pile of cups \textbf{that have been waiting the
+    longest} and distribute them evenly amongst the
+    parallel pile cups, until this would necessarily result in a
+    cup having more than $1$ as its average fill.
+  \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+
+
+We claim that Algorithm \ref{alg:thresh}, which we will refer to as
+THRESH, satisfies the following invariant: 
+\begin{equation}
+  \label{eqn:invariant}
+  \pi
+\end{equation}
+
+We inductively prove \eqref{eqn:invariant}.
+This will imply that it's $O(1)$-competitive. Or something like
+that maybe.
+
+I think that Algorithm \ref{alg:halfnhalf} and Algorihtm
+\ref{alg:hmmm} are both $2$-competitive.
+
+\end{proof}
+
+
+\begin{clm}
+  LNPU (leave no parallel task undone) is $2$-competitive with
+  OPT.
+\end{clm}
+\begin{proof}
+  First consider how LNPU deals with a pulse of $m < p$ tasks
+  followed by nothing. (Note: if it gets more than $p$ tasks,
+  then it might as well just save those and get them $k$ rounds
+  later, because in this case its obviously going to schedule
+  everything in serial)
+
+  If $m \ge p/r$ it of course schedules everything in serial, and
+  finishes in $k$ steps. Clearly you can't do better than this;
+  if you scheduled everything in parallel from the start it would
+  take $k$ steps, so you might as well schedule something in
+  serial.
+
+  If $m\le p/(rk)$ it of course schedules everything in parallel
+  and finishes in $1$ time step. Obviously there is nothing
+  better than this.
+
+  If $m = c\cdot p/r $ for some $c\in (1/k, 1)$ then either a)
+  $c\ge 1/2$ in which case, we simply note that the algorithm
+  obviously finishes in no more than $k$ steps, which is of
+  course no more than $2ck$, or b) $c\le 1/2$
+  in which case there are at least $p/2$ processors that aren't
+  getting serial tasks, so these will basically finish the tasks
+  in $2ck$ time. OPT will finish this in $ck$ time. Either way,
+  LNPU is $2$-competitive with OPT on this input.
+
+  Now, we analyze what would happen if there wasn't just a single
+  pulse. 
+
+  Intuitively LNPU does even better if it's not just a single
+  pulse because then it gets to schedule more stuff in serial and
+  gets more parallelism for doing so. Yippee!
+
+  More formally, ...
+
+  Now let's imagine it was more like $m_1, m_2, \ldots$ that came
+  in. 
+
+ 
+\end{proof}
+
+\begin{clm}
+  The Half and Half Alg (HnH) is $2$-competitive with OPT when
+  there's just a single task.
+\end{clm}
+\begin{proof}
+  
+\end{proof}
+
+
+\section{Full Problem}
+
+Now we look at the problem in its full generality.
+
+I feel like the alg from above is pretty good, but the ``packing"
+step doesn't really make sense any more?
+
+What are the equivalents of $k, r$ here? Can we mandate an
+average task size or somehting? That's not super elegant...
+
+The ``Leave No Parallel Task Undone" strategy can be applied here without modifications!
+If I can prove upper-bounds on its competitive ratio in the
+single-task varaint of this game (which seems very likely
+possible, I haven't found any examples that prove anything more
+than a trivial $\Omega(1)$ lower bound on its competitve ratio!)
+then we'll be in great shape here! That is, I bet we'll be able
+to analyze this thing.
+
+I also bet HnH is $O(1)$ competitive in both cases.
+
+\section{Random Thoughts}
+
+\begin{itemize}
+  \item there is a $2$-competitive alg 
+  \item there is NO $(2-\epsilon)$-competitive alg  for $\epsilon > 0$
+\end{itemize}
+
+\end{document}
