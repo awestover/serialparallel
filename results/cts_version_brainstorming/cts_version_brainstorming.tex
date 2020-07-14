@@ -75,12 +75,72 @@
 \begin{Large}
 	Alek Westover \\
 	\vspace{2mm}
-	Math 
+	Old Brainstorming 
 \end{Large}
 \end{center}
 \thispagestyle{empty}
 
 \section{chill}
+
+
+\begin{algorithm}
+  \caption{Alg greed}
+  \begin{algorithmic}[1]
+    \Procedure{greed0}{}
+    \While{True}
+      \If{all processors are idle}
+        \If{If there are more than $p/k$ queued tasks}
+          \State schedule all (or $p$) in serial
+        \Else
+          \State Schedule one in parallel
+        \EndIf
+      \EndIf
+    \EndWhile
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}
+  \caption{Alg greed}
+  \begin{algorithmic}[1]
+    \Procedure{greed1}{}
+    \While{True}
+      \If{all processors are idle}
+        \If{If there are more than $p/k$ queued tasks}
+          \State schedule all (or $p$) in serial
+        \Else
+          \State Schedule all in parallel
+        \EndIf
+      \EndIf
+    \EndWhile
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Alg greed}
+  \begin{algorithmic}[1]
+    \Procedure{greed2}{}
+    \While{True}
+      \If{all processors are idle}
+        \State $q \gets $ number of queued tasks
+        \State schedule $\floor{q/p}$ tasks in serial to each processor
+        \State $q' \gets q\bmod p$
+        \If{$q' > p/k$}
+          \State Schedule $q'$ tasks in serial
+        \Else
+        \State Schedule $q'$ tasks in parallel (distributing work equally)
+        \EndIf
+      \EndIf
+    \EndWhile
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+
+
+
 \begin{algorithm}
   \caption{Alg chill}
   \begin{algorithmic}[1]
