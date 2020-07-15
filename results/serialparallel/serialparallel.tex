@@ -231,18 +231,20 @@ Let $$T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
   $$T^{OPT}(q) = T(q).$$
 \end{claim}
 \begin{proof}
-  We now claim that OPT can do no better than this. This is
-  obvious if $q \le p$: if OPT schedules any task in serial then
-  OPT has awake time at least $1$, and if OPT schedules everything in
-  parallel then OPT has awake time at least $qk/p$; for $q\le p$ we have
-  $T(q) = \min(1, qk/p)$, so OPT can do no better than SGR here.
-  It is intuitively obvious that if there are $q> p$ tasks, then
-  scheduling about $\floor{q/p}$ tasks in serial to each
-  processor like SGR does is the right strategy; we now formalize this.
+  Of course by Claim~\ref{clm:sgr_single} $T^{OPT}(q) \le
+  T^{SGR}(q) = T(q)$. We now claim that OPT can do no better than
+  this. This is obvious if $q \le p$: if OPT schedules any task
+  in serial then OPT has awake time at least $1$, and if OPT
+  schedules everything in parallel then OPT has awake time at
+  least $qk/p$; for $q\le p$ we have $T(q) = \min(1, qk/p)$, so
+  OPT can do no better than SGR here. It is intuitively obvious
+  that if there are $q> p$ tasks, then scheduling about
+  $\floor{q/p}$ tasks in serial to each processor like SGR does
+  is the right strategy; proving this is somewhat intricate
+  however.
 
   Say OPT schedules $x$ of the $q$ tasks in serial, and
   schedules the remaining $q-x$ in parallel.
-
   Say that an optimal assignment of the tasks, under the constraint
   that $x$ of the tasks are scheduled in serial and $q-x$ are
   scheduled in parallel, achieves awake time $M$.
@@ -284,16 +286,64 @@ Let $$T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
   eventually achieve a configuration with awake time $M$ where each 
   processor has $\floor{x/p}$ or $\ceil{x/p}$ serial tasks.
 
-  \todo{almost there! parallel stuff might as well be frosting on
-  the cake. water in the bucket.}
+  If $x\bmod p = 0$ then the awake time of OPT is clearly at
+  least 
+  \begin{equation} \label{eq:case_xmodp0}
+    x/p + (q-x)k/p.
+  \end{equation}
+  Note that if $x$ increases by $p$ then \eqref{eq:case_xmodp0}
+  changes by $1-k < 0$. That is, \eqref{eq:case_xmodp0} is
+  monotonically decreasing in $x$, and is thus minimized by
+  setting $x = p\floor{q/p}$ and hence getting $q-x = q\bmod p$.
+  This gives awake time $\floor{q/p} + (q\bmod p)k/p \ge T(q)$.
 
+  Now we consider the case where $x\bmod p \neq 0$. Here $(p -
+  (x\bmod p))/k$ tasks can be added in serial without
+  increasing the work at all. Thus the awake time is at least
+  \begin{equation} \label{eq:case_xmodpnot0}
+    \ceil{x/p} + \frac{k}{p}\paren{\max\paren{0, q-x - \frac{p-(x\bmod p)}{k}}}.
+  \end{equation}
+
+  Consider when the $\max$ in \eqref{eq:case_xmodpnot0} yields $0$. 
+  For this to happen we must have
+  $$q-x \le \frac{p-x\bmod p}{k}.$$
+  As $p-x\bmod p \le p$ we get the following bound on $q-x$:
+  $$q-x \le p/k,$$
+  which must be met in order for the $\max$ to yield $0$.
+  Clearly as $q \ge x \ge q-p/k$, $\floor{x/p} \ge \floor{q/p}-1$; we
+  claim that this inequality is actually strict. Imagine that
+  $\floor{x/p} = \floor{q/p}-1$. Because the $\max$ expression
+  yields $0$, meaning that the parallel tasks add nothing to the
+  awake time, if all processors only have $\floor{q/p}-1$ or
+  $\floor{q/p} < q/p$ serial tasks, then the total work is at
+  most $\floor{q/p} < q/p$ which is impossible: the total work in
+  the system must be at least $q$ and it can be distributed in
+  the best case perfectly equally which makes $q/p$ as a lower
+  bound on the time to complete $q$ tasks. Hence $\floor{x/p} = \floor{q/p}$. 
+  But then the awake time is at least $\ceil{x/p} = \floor{q/p} + 1 \ge T(q)$.
+
+  Now we consider the case when the $\max$ in
+  \eqref{eq:case_xmodpnot0} yields some positive number.
+  Note that if $x$ increases by $p$ (but $x$ is still
+  sufficiently small so that the $\max$ yields a positive number)
+  then \eqref{eq:case_xmodpnot0} changes by $1-k < 0$.
+  Further, if $x$ increases by $1$ (but $x$ is still
+  sufficiently small so that the $\max$ yields a positive number) without $\ceil{x/p}$
+  changing, then \eqref{eq:case_xmodpnot0} changes by $(k/p)(1/k
+  -1) < 0$. That is, \eqref{eq:case_xmodpnot0} is monotonically
+  decreasing in $x$. Hence we still have that the awake time is at least $T(q).$
+
+  We have considered all cases, and shown that no matter what
+  choice of $x$ OPT makes, and no matter how OPT schedules given
+  that choice of $x$, OPT must incur awake time at least $T(q)$,
+  as desired.
 \end{proof}
 
 Combining Claim~\ref{clm:sgr_single} and
 Claim~\ref{clm:opt_single} we have
 \begin{equation}
   \label{eq:same_single}
-  T^{OPT}(q) = T^{CHILL}(q) = T(q)
+  T^{OPT}(q) = T^{CHILL}(q) = T(q).
 \end{equation}
 We remark SGR \enquote{locally} schedules optimally, which is
 why we refer to SGR as \enquote{greedy}. 
