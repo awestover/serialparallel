@@ -30,6 +30,8 @@
 \newcommand{\defeq}{\vcentcolon=}
 \newcommand{\eqdef}{=\vcentcolon}
 
+\DeclareMathOperator{\work}{\text{work}}
+
 \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
 \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
 \newcommand{\paren}[1]{\left( #1 \right)}
@@ -55,36 +57,36 @@
 \title{Serial-Parallel Scheduling Problem}
 
 \begin{document}
-% \maketitle
+\maketitle
 
-% \begin{abstract}
-%   There are many problems for which the best parallel algorithms
-%   have larger cost than the best serial algorithms. 
-%   We consider a scheduler that is receiving many tasks with
-%   serial and parallel implementations that have potentially
-%   different costs. The scheduler can choose whether to run each
-%   task in serial or in parallel.
-%   The scheduler aims to minimize the total time that it has
-%   unfinished tasks. We analyze the competitive ratio of
-%   schedulers, i.e. the ratio of the time of a scheduler to the
-%   optimal time.
+\begin{abstract}
+  There are many problems for which the best parallel algorithms
+  have larger cost than the best serial algorithms. 
+  We consider a scheduler that is receiving many tasks with
+  serial and parallel implementations that have potentially
+  different costs. The scheduler can choose whether to run each
+  task in serial or in parallel.
+  The scheduler aims to minimize the total time that it has
+  unfinished tasks. We analyze the competitive ratio of
+  schedulers, i.e. the ratio of the time of a scheduler to the
+  optimal time.
 
-%   We construct a simple deterministic scheduler that does not use
-%   preemption that is $2$-competitive for the scheduling problem.
-%   We also prove that no deterministic scheduler can have a
-%   competitive ratio smaller than $1.44$ in general.
-%   We also exhibit a randomized scheduler that achieves
-%   expected competitive ratio at least $1.5$.
+  We construct a simple deterministic scheduler that does not use
+  preemption that is $2$-competitive for the scheduling problem.
+  We also prove that no deterministic scheduler can have a
+  competitive ratio smaller than $1.44$ in general.
+  We also exhibit a randomized scheduler that achieves
+  expected competitive ratio at least $1.5$.
 
-%   Also, we look at the problem when the tasks are allowed to do
-%   recursion, i.e. they can spawn multiple tasks. In this case we
-%   prove XXX.
+  Also, we look at the problem when the tasks are allowed to do
+  recursion, i.e. they can spawn multiple tasks. In this case we
+  prove XXX.
 
-% \end{abstract}
+\end{abstract}
 
-% \input{sec1_intro.tex}
+\input{sec1_intro.tex}
 \input{sec2_greedy.tex}
-% \input{sec3_lowerbound.tex}
+\input{sec3_lowerbound.tex}
 % \input{sec4_randomized.tex}
 % \input{sec5_recursion.tex}
 

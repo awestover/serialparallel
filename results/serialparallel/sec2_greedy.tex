@@ -37,7 +37,7 @@ We propose Algorithm~\ref{alg:gr}, which we call \defn{GR}
 A \defn{single-time-TAP} is a TAP where all tasks arrive at a
 single time. ORACLE-1 is an algorithm that yields a schedule
 achieveing minimal awake time, i.e. the same awake time as OPT,
-on single-time-TAPs. In Theorem~\ref{thm:cakefrosting} we
+on single-time-TAPs. In Lemma~\ref{lem:frosting} we
 establish that ORACLE-1, which we specify in
 Algorithm~\ref{alg:opt_oracle}, is an oracle for OPT on
 single-time-TAPs, hence showing that GR can actually be computed.
@@ -201,9 +201,8 @@ GR's competitive ratio on a TAP without OPT-gaps.
 Now we analyze Algorithm~\ref{alg:opt_oracle}, which we call
 ORACLE-1. 
 
-\todo{simpler description of frosting}
 \begin{algorithm}
-  \caption{ORACLE-1: oracle for OPT on single-time-TAPs}
+  \caption{ORACLE-1}
   \label{alg:opt_oracle}
   \begin{algorithmic}
     \State \textbf{Input:} tasks $\tau_1,\ldots, \tau_n$ all with $t(\tau_i) = 0$
@@ -222,19 +221,15 @@ ORACLE-1.
             \State schedule task $\tau_i$ in serial on $\rho_{J_j}$
           \EndIf
         \EndFor
-        \For{$i \in \{1,2,\ldots, n\}$}
-          \If{$I_i=0$}
-            \State $f \gets \pi(\tau_i)$
-            \While{$f > 0$}
-              \State $b_1\gets \min_{\rho_i}(\text{work}(\rho_i))$
-              \State $B_1 \gets \{\rho_i | \text{work}(\rho_i)=b_1\}$
-              \State $b_2\gets \inf_{\rho_i\not\in B}(\text{work}(\rho_i))$
-              \State $\Delta_f \gets \min(f/|B_1|, b_2-b_1)$
-              \State give fill $\Delta_f$ to all $\rho_i \in B_1$
-              \State $f \gets f - \Delta_f$
-            \EndWhile
-          \EndIf
-        \EndFor
+        \State $m \gets \max_{\rho_i}(\work(\rho_i))$
+        \State $w \gets \sum_{\rho_i} \paren{m - \work(\rho_i)}$
+        \State $f \gets \sum_{\rho_i} (1-I_i)\pi(\rho_i)$
+        \If{$f \ge w$}
+          \State make $\rho_i$ have work $m + (f-w)/p$
+        \Else 
+          \State distribute $f$ units of work arbitrarily 
+          \State among $\rho_i$ without increasing awake time
+        \EndIf
         \If{$\text{awakeTime}(I, J) \le \text{minAwakeTime}$}
           \State{$\text{minAwakeTime} \gets \text{awakeTime}(I, J)$}
           \State{$\text{bestSchedule} \gets \text{schedule}(I, J)$}
@@ -244,128 +239,34 @@ ORACLE-1.
   \end{algorithmic}
 \end{algorithm}
 
-The algorithm is a straightforward brute-force approach to
-computing what to do. The algorithm tries every possible way of
-assigning some tasks to be run in parallel and others to be run
-in serial, and for each of these the algorithm tries every
-possible way to arrange the serial tasks, and for each of these
-the algorithm then \defn{frosts} the configuration with parallel
-tasks, meaning, the algorithm distributes the parallel tasks so
-as to minimally increase awake time.
+The key insight to decrease the search space to be finite is to
+notice that for any method of distributing whichever tasks are
+chosen to run in serial, the parallel tasks may as well be
+redistributed afterwords, so long as doing so either results in
+not increasing the awake time, or results in all tasks having
+identical amounts of work.
+We can thus do a brute-force search over all the ways to assign some
+tasks to run in serial and to run on specific processors, and
+then put the parallel tasks on top \enquote{like frosting on a cake}. 
 
 We remark that the running time of ORACLE-1 for $n$ tasks is at
 least $\sum_{i=1}^n n^{\binom{n}{i}} \ge 2^{2^n},$ which is
-pretty big. Nevertheless the existence of our algorithm is very
-interesting, and the running time can probably re reduced.
+pretty big. Nevertheless the existence of our algorithm is
+interesting, and the running time can almost certainly be reduced.
 
 We now prove that ORACLE-1 actually does compute a schedule with
 awake time the same as that of OPT.
-\begin{theorem}[Cake Frosting Theorem]
-  \label{thm:cakefrosting} 
+\begin{lemma}[Frosting Lemma]
+  \label{lem:frosting} 
   ORACLE-1 is an oracle for OPT on TAPs where all tasks arrive at a single time.
-\end{theorem}
+\end{lemma}
 \begin{proof}
-  Consider a TAP where all tasks arrive at a single time. We
-  claim that the awake time achieved by OPT is not better than
-  the awake time achieved by ORACLE-1, or equivalently GR (which
-  in this case is the same as ORACLE-1).
-
-  \todo{make this not specific to the single-task case}
-  Say OPT schedules $x$ of the $q$ tasks in serial, and
-  schedules the remaining $q-x$ in parallel.
-  Say that an optimal assignment of the tasks, under the constraint
-  that $x$ of the tasks are scheduled in serial and $q-x$ are
-  scheduled in parallel, achieves awake time $M$.
-
-  We claim that there must exist an optimal assignment of tasks
-  such that each processor is assigned either $\floor{x/p}$ or
-  $\ceil{x/p}$ serial tasks. To prove this, we start from some
-  optimal assignment, and modify it in such a way as to make the
-  configuration \enquote{closer} to our desired configuration.
-  Let $n_\sigma(\rho_i)$ be the number of serial tasks scheduled
-  on processor $\rho_i$.
-
-  To formalize a notion of \enquote{closeness} we define a
-  potential function $\phi$ of the assignment $S$ of tasks:
-  $$\phi(S) = \sum_{i} \min(|n_\sigma(\rho_i)-\floor{x/p}|,
-  |n_\sigma(\rho_i)-\ceil{x/p}|.$$ Note that $\phi(S)$ is
-  non-negative. We desire a configuration with $\phi(S) = 0$.
-  Consider a configuration of tasks achieving awake time $M$ with
-  $\phi(S) > 0$. We first apply the following procedure to the
-  configuration: while the difference between the maximum work
-  assigned to a processor and the minimum work assigned to a
-  processor is more than $1$ swap $1$ unit of work from a
-  processor with the maximum amount of work to a processor with
-  the minimum amount of work. This swap cannot increase the range
-  of works assigned to processors, and the process must
-  eventually terminate. Now, while $\phi(S) > 0$ there must
-  exists $\rho_i, \rho_j$ with $n_\sigma(\rho_i) < \floor{x/p}$
-  and $n_\sigma(\rho_j) > \floor{x/p}$ or there exists $\rho_i,
-  \rho_j$ with $n_\sigma(\rho_i) < \ceil{x/p}$ and
-  $n_\sigma(\rho_j) > \ceil{x/p}$. By construction the range of
-  the works is at most $1$; hence $\rho_i$ has at least $1$ unit
-  of parallel work to have work within $1$ of $\rho_j$ despite
-  having at least $2$ fewer serial tasks than $\rho_j$. Then
-  $\rho_i$ gives this $1$ unit of parallel work to $\rho_j$, and
-  in exchange $\rho_j$ gives $\rho_i$ a serial task. This
-  swapping operation decreases $\phi(S)$ by exactly $1$, and does
-  not change the amount of work assigned to each processor, which
-  importantly means that the swap does not increase the range of
-  the works. Hence, we can repeat this swapping process to
-  eventually achieve a configuration with awake time $M$ where
-  each processor has $\floor{x/p}$ or $\ceil{x/p}$ serial tasks.
-
-  If $x\bmod p = 0$ then the awake time of OPT is clearly at
-  least 
-  \begin{equation} \label{eq:case_xmodp0}
-    x/p + (q-x)k/p.
-  \end{equation}
-  Note that if $x$ increases by $p$ then \eqref{eq:case_xmodp0}
-  changes by $1-k < 0$. That is, \eqref{eq:case_xmodp0} is
-  monotonically decreasing in $x$, and is thus minimized by
-  setting $x = p\floor{q/p}$ and hence getting $q-x = q\bmod p$.
-  This gives awake time $\floor{q/p} + (q\bmod p)k/p \ge T(q)$.
-
-  Now we consider the case where $x\bmod p \neq 0$. Here $(p -
-  (x\bmod p))/k$ tasks can be added in serial without
-  increasing the work at all. Thus the awake time is at least
-  \begin{equation} \label{eq:case_xmodpnot0}
-    \ceil{x/p} + \frac{k}{p}\paren{\max\paren{0, q-x - \frac{p-(x\bmod p)}{k}}}.
-  \end{equation}
-
-  Consider when the $\max$ in \eqref{eq:case_xmodpnot0} yields $0$. 
-  For this to happen we must have
-  $$q-x \le \frac{p-x\bmod p}{k}.$$
-  As $p-x\bmod p \le p$ we get the following bound on $q-x$:
-  $$q-x \le p/k,$$
-  which must be met in order for the $\max$ to yield $0$.
-  Clearly as $q \ge x \ge q-p/k$, $\floor{x/p} \ge \floor{q/p}-1$; we
-  claim that this inequality is actually strict. Imagine that
-  $\floor{x/p} = \floor{q/p}-1$. Because the $\max$ expression
-  yields $0$, meaning that the parallel tasks add nothing to the
-  awake time, if all processors only have $\floor{q/p}-1$ or
-  $\floor{q/p} < q/p$ serial tasks, then the total work is at
-  most $\floor{q/p} < q/p$ which is impossible: the total work in
-  the system must be at least $q$ and it can be distributed in
-  the best case perfectly equally which makes $q/p$ as a lower
-  bound on the time to complete $q$ tasks. Hence $\floor{x/p} = \floor{q/p}$. 
-  But then the awake time is at least $\ceil{x/p} = \floor{q/p} + 1 \ge T(q)$.
-
-  Now we consider the case when the $\max$ in
-  \eqref{eq:case_xmodpnot0} yields some positive number.
-  Note that if $x$ increases by $p$ (but $x$ is still
-  sufficiently small so that the $\max$ yields a positive number)
-  then \eqref{eq:case_xmodpnot0} changes by $1-k < 0$.
-  Further, if $x$ increases by $1$ (but $x$ is still
-  sufficiently small so that the $\max$ yields a positive number) without $\ceil{x/p}$
-  changing, then \eqref{eq:case_xmodpnot0} changes by $(k/p)(1/k
-  -1) < 0$. That is, \eqref{eq:case_xmodpnot0} is monotonically
-  decreasing in $x$. Hence we still have that the awake time is at least $T(q).$
-
-  We have considered all cases, and shown that no matter what
-  choice of $x$ OPT makes, and no matter how OPT schedules given
-  that choice of $x$, OPT must incur awake time at least $T(q)$,
-  as desired.
+  Consider the configuration that OPT chooses. ORACLE-1 considers
+  a configuration of tasks with the same assignment of serial
+  tasks at some point, because ORACLE-1 brute force searches
+  through all of these. For this configuration it is clearly
+  impossible to achieve lower awake time than by spreading the
+  parallel tasks in the frosting method, hence OPT's awake time
+  is at least that of ORACLE-1.
 \end{proof}
-
 
