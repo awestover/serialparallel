@@ -1,0 +1,87 @@
+\section{Introduction}
+\subsection{Problem Specification}
+A parallel algorithm is said to be \defn{work-efficient} if the
+work of the parallel algorithm is the same as the work of a
+serial algorithm for the same problem. Most implementations of
+parallel algorithms are not work-efficient, often having work
+that is a constant factor greater, or even asymptotically
+greater, than the work of the serial algorithm for the problem.
+
+In the \defn{Serial-Parallel Scheduling Problem} we have to
+perform $n$ tasks $\tau_1, \ldots, \tau_n$ ($n$ unknown ahead of
+time). We have $p$ processors $\rho_1, \ldots, \rho_p$. Each task
+$\tau_i$ has a parallel implementation with work $\pi(\tau_i)$ and a
+serial implementation with work $\sigma(\tau_i)$. The tasks will become
+available at some times $t(\tau_1), \ldots, t(\tau_n)$. 
+The sequence of tasks with their associated parallel and serial
+implementations works and with their associated arrival times is
+called a \defn{task arrival plan} or \defn{TAP} for short.
+Note that we consider time to be continuous, although our
+algorithms and bounds actually also apply if tasks must arrive
+and finish at discrete times; in fact having discrete time seems
+to hurt OPT much more than an off-line algorithm.
+
+The scheduler maintains a set of \defn{ready} tasks, which are
+tasks that have become available but are not currently being run
+on any processor. At time $t(\tau_i)$ task $\tau_i$ is added to
+the set of ready tasks. At any time the scheduler can decide to
+schedule some (not already running) ready task, and can choose
+whether to run the task in serial, in which case the scheduler
+must choose a single processor to run the task on, or in
+parallel, in which case the scheduler can distribute the task's
+work arbitrarily among the processors. Intuitively, if there are
+many ready tasks then the scheduler should run the serial
+implementations of the tasks because the scheduler can achieve
+parallelism across the tasks. On the other hand, if there are not
+very many ready tasks it is probably better for the scheduler to
+run the parallel versions of the tasks --- even though they are
+possibly not work efficient, i.e. $\pi(\tau) > \sigma(\tau)$ ---
+because by so doing at least the scheduler can achieve
+parallelism within tasks.
+
+Let the \defn{awake time} of the scheduler be the duration of
+time over which the scheduler has unfinished tasks.
+The scheduler attempts to minimize awake time.
+We measure how well the scheduler is able to minimize its awake
+time by comparing its awake time to the awake time of the optimal
+strategy, which we will denote OPT. Note that OPT is able to see
+the whole sequence of tasks in advance.
+The \defn{competitive ratio} of a scheduler is the ratio
+of its awake time to the awake time of OPT on the same input.
+
+\subsection{Problem Motivation}
+Data-centers often get heterogeneous tasks. Being able to schedule
+them efficiently is a fundamental problem. 
+
+\subsection{Related Work}
+An algorithm called Shortest Remaining Processing Time (SRPT),
+and its variants are often useful for minimizing metrics like mean
+response time.
+
+In \cite{bb20}, Berg et al study a related problem:
+many heterogeneous tasks come in, some which are elastic and
+exhibit perfect linear scaling of performance and some which are
+inelastic which must be run on a single processor, according to
+some stochastic assumptions, and they aim to minimize mean
+response time.
+
+In \cite{is16} Im et al exhibit an algorithm keeps the average
+flow time small. 
+
+In \cite{ga12} Gupta et al prove some impossibility results about
+a problem somewhat similar to our problem.
+
+Clearly related problems are widely studied.
+Our problem is novel however, and interesting.
+
+\subsection{Results}
+We construct a simple deterministic scheduler that does not use
+preemption that is $2$-competitive for the scheduling problem.
+We also prove that no deterministic scheduler can have a
+competitive ratio smaller than $1.44$ in general.
+We also exhibit a randomized scheduler that achieves
+expected competitive ratio at least $1.5$.
+
+Also, we look at the problem when the tasks are allowed to do
+recursion, i.e. they can spawn multiple tasks. In this case we
+prove XXX.

@@ -1,0 +1,480 @@
+\todo{first case went very well. other cases don't work. but
+first case works so well, that in fact it didn't even need the
+assumptions we gave it! first case ports super easily to general
+case.}
+
+\section{Deterministic Scheduling Algorithms}
+In this section we present deterministic scheduling algorithms
+for this problem. We first analyze the competitive ratio of
+simple algorithms for special cases of the problem, and then
+generalize these strategies to get an algorithm with low
+competitive ratio in the general setting of the problem.
+
+\subsection{Symmetric-Tasks Case}
+\label{subsec:symmetrictasks}
+\todo{hypothesis: we can actually do way better than just being
+$2$-competitive is my guess...}
+
+First we consider a special case of the problem: the case where
+all tasks have identical serial and parallel works. Let
+the work of the serial implementations be $1$, and let the work
+of the parallel implementations be $k \in [1, p]$\footnote{Note that
+without loss of generality $k \in [1,p]$: if $k < 1$, i.e. the
+parallel implementation has lower work than the serial
+implementation, then the scheduler clearly should never use the serial
+implementation of this algorithm, so we can replace the serial
+implementation with the parallel implementation and hence get
+$k=1$, similarly, if $k > p$ then the scheduler should never run
+the parallel task and we can replace the parallel implementation
+of the task with the serial implementation.}. Throughout this
+subsection it is implicit that any TAP we
+refer to consists of identical tasks with serial work $1$ and parallel work $k$.
+
+We say that a time is a \defn{verge} time for our algorithm if at
+this time no processors are performing tasks and there is at
+least one ready task.
+
+We propose Algorithm~\ref{alg:sgr}, which we call \defn{SGR}
+(SGR stands for \enquote{simple greedy}),
+for scheduling in the symmetric-tasks case.
+
+\begin{algorithm}
+  \caption{SGR}
+  \label{alg:sgr}
+  \begin{algorithmic}
+    \While{True}
+      \If{verge time}
+        \State $q \gets $ number of ready tasks
+        \State schedule $\floor{q/p}$ serial tasks to each processor
+        \State $q' \gets q\bmod p$
+        \If{$q' \ge p/k$}
+          \State schedule $q'$ tasks in serial
+          \State giving each processor at most $1$ task
+        \Else
+          \State schedule $q'$ tasks in parallel
+          \State distributing their work equally 
+        \EndIf
+      \EndIf
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+In the rest of this subsection we analyze the competitive ratio of SGR.
+
+Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
+times; note that $\ell \le n$ which in particular is finite. Let
+$t_i$ be the $i$-th time that is a verge time, let $q_i$ be the
+number of ready tasks for SGR at time $t_i$. Let $T^{ALG}(q_1,
+\ldots, q_{\ell'})$ denote the awake time of a scheduling algorithm
+ALG on the truncation of the TAP $\mathcal{T}$ that only consists
+of tasks arriving at times before $t_{\ell'}$.
+
+First we analyze $T^{OPT}$ and $T^{SGR}$ for the case where all
+the tasks arrive at a single time.
+Let $$T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
+
+\begin{claim}
+  \label{clm:sgr_single}
+  $$T^{SGR}(q) = T(q).$$
+\end{claim}
+\begin{proof}
+  SGR first schedules $\floor{q/p}$ tasks in serial to
+  each processor; completing these tasks requires time $1\cdot \floor{q/p}$. 
+  Then SGR either schedules $q\bmod p$ tasks
+  in serial, which takes time $1$, or schedules $q\bmod p$
+  tasks in parallel, which takes time $(q\bmod p)k/p$; in
+  particular SGR chooses whichever of these options leads to
+  lower awake time. Hence overall on this TAP
+  SGR achieves awake time $T(q)$.
+\end{proof}
+
+\begin{claim}
+  \label{clm:opt_single}
+  $$T^{OPT}(q) = T(q).$$
+\end{claim}
+\begin{proof}
+  Of course by Claim~\ref{clm:sgr_single} $T^{OPT}(q) \le
+  T^{SGR}(q) = T(q)$. We now claim that OPT can do no better than
+  this. This is obvious if $q \le p$: if OPT schedules any task
+  in serial then OPT has awake time at least $1$, and if OPT
+  schedules everything in parallel then OPT has awake time at
+  least $qk/p$; for $q\le p$ we have $T(q) = \min(1, qk/p)$, so
+  OPT can do no better than SGR here. It is intuitively obvious
+  that if there are $q> p$ tasks, then scheduling about
+  $\floor{q/p}$ tasks in serial to each processor like SGR does
+  is the right strategy; proving this is somewhat intricate
+  however.
+
+  Say OPT schedules $x$ of the $q$ tasks in serial, and
+  schedules the remaining $q-x$ in parallel.
+  Say that an optimal assignment of the tasks, under the constraint
+  that $x$ of the tasks are scheduled in serial and $q-x$ are
+  scheduled in parallel, achieves awake time $M$.
+
+  We claim that there must exist an optimal assignment of tasks
+  such that each processor is assigned either $\floor{x/p}$ or
+  $\ceil{x/p}$ serial tasks. To prove this, we start from some
+  optimal assignment, and modify it in such a way as to make the
+  configuration \enquote{closer} to our desired configuration.
+  Let $n_\sigma(\rho_i)$ be the number of serial tasks scheduled
+  on processor $\rho_i$.
+
+  To formalize a notion of \enquote{closeness} we define a potential 
+  function $\phi$ of the assignment $S$ of tasks:
+  $$\phi(S) = \sum_{i} \min(|n_\sigma(\rho_i)-\floor{x/p}|, |n_\sigma(\rho_i)-\ceil{x/p}|.$$ 
+  Note that $\phi(S)$ is non-negative. We desire a configuration with $\phi(S) = 0$.
+  Consider a configuration of tasks achieving awake time $M$ with $\phi(S) > 0$.
+  We first apply the following procedure to the configuration:
+  while the difference between the maximum work assigned to a
+  processor and the minimum work assigned to a processor is more
+  than $1$ swap $1$ unit of work from a processor with the
+  maximum amount of work to a processor with the minimum amount
+  of work. This swap cannot increase the range of works assigned
+  to processors, and the process must eventually terminate.
+  Now, while $\phi(S) > 0$ there must 
+  exists $\rho_i, \rho_j$ with $n_\sigma(\rho_i) < \floor{x/p}$
+  and $n_\sigma(\rho_j) > \floor{x/p}$ or there exists $\rho_i,
+  \rho_j$ with $n_\sigma(\rho_i) < \ceil{x/p}$ and
+  $n_\sigma(\rho_j) > \ceil{x/p}$. By construction the range of
+  the works is at most $1$; hence $\rho_i$ has at least $1$ unit
+  of parallel work to have work within $1$ of $\rho_j$ despite
+  having at least $2$ fewer serial tasks than $\rho_j$. Then
+  $\rho_i$ gives this $1$ unit of parallel work to $\rho_j$, and
+  in exchange $\rho_j$ gives $\rho_i$ a serial task. This
+  swapping operation decreases $\phi(S)$ by exactly $1$, and does
+  not change the amount of work assigned to each processor, which
+  importantly means that the swap does not increase the range of
+  the works. Hence, we can repeat this swapping process to
+  eventually achieve a configuration with awake time $M$ where each 
+  processor has $\floor{x/p}$ or $\ceil{x/p}$ serial tasks.
+
+  If $x\bmod p = 0$ then the awake time of OPT is clearly at
+  least 
+  \begin{equation} \label{eq:case_xmodp0}
+    x/p + (q-x)k/p.
+  \end{equation}
+  Note that if $x$ increases by $p$ then \eqref{eq:case_xmodp0}
+  changes by $1-k < 0$. That is, \eqref{eq:case_xmodp0} is
+  monotonically decreasing in $x$, and is thus minimized by
+  setting $x = p\floor{q/p}$ and hence getting $q-x = q\bmod p$.
+  This gives awake time $\floor{q/p} + (q\bmod p)k/p \ge T(q)$.
+
+  Now we consider the case where $x\bmod p \neq 0$. Here $(p -
+  (x\bmod p))/k$ tasks can be added in serial without
+  increasing the work at all. Thus the awake time is at least
+  \begin{equation} \label{eq:case_xmodpnot0}
+    \ceil{x/p} + \frac{k}{p}\paren{\max\paren{0, q-x - \frac{p-(x\bmod p)}{k}}}.
+  \end{equation}
+
+  Consider when the $\max$ in \eqref{eq:case_xmodpnot0} yields $0$. 
+  For this to happen we must have
+  $$q-x \le \frac{p-x\bmod p}{k}.$$
+  As $p-x\bmod p \le p$ we get the following bound on $q-x$:
+  $$q-x \le p/k,$$
+  which must be met in order for the $\max$ to yield $0$.
+  Clearly as $q \ge x \ge q-p/k$, $\floor{x/p} \ge \floor{q/p}-1$; we
+  claim that this inequality is actually strict. Imagine that
+  $\floor{x/p} = \floor{q/p}-1$. Because the $\max$ expression
+  yields $0$, meaning that the parallel tasks add nothing to the
+  awake time, if all processors only have $\floor{q/p}-1$ or
+  $\floor{q/p} < q/p$ serial tasks, then the total work is at
+  most $\floor{q/p} < q/p$ which is impossible: the total work in
+  the system must be at least $q$ and it can be distributed in
+  the best case perfectly equally which makes $q/p$ as a lower
+  bound on the time to complete $q$ tasks. Hence $\floor{x/p} = \floor{q/p}$. 
+  But then the awake time is at least $\ceil{x/p} = \floor{q/p} + 1 \ge T(q)$.
+
+  Now we consider the case when the $\max$ in
+  \eqref{eq:case_xmodpnot0} yields some positive number.
+  Note that if $x$ increases by $p$ (but $x$ is still
+  sufficiently small so that the $\max$ yields a positive number)
+  then \eqref{eq:case_xmodpnot0} changes by $1-k < 0$.
+  Further, if $x$ increases by $1$ (but $x$ is still
+  sufficiently small so that the $\max$ yields a positive number) without $\ceil{x/p}$
+  changing, then \eqref{eq:case_xmodpnot0} changes by $(k/p)(1/k
+  -1) < 0$. That is, \eqref{eq:case_xmodpnot0} is monotonically
+  decreasing in $x$. Hence we still have that the awake time is at least $T(q).$
+
+  We have considered all cases, and shown that no matter what
+  choice of $x$ OPT makes, and no matter how OPT schedules given
+  that choice of $x$, OPT must incur awake time at least $T(q)$,
+  as desired.
+\end{proof}
+
+Combining Claim~\ref{clm:sgr_single} and
+Claim~\ref{clm:opt_single} we have
+\begin{equation}
+  \label{eq:same_single}
+  T^{OPT}(q) = T^{SGR}(q) = T(q).
+\end{equation}
+We remark SGR \enquote{locally} schedules optimally, which is
+why we refer to SGR as \enquote{greedy}. 
+
+An ALG-gap is an interval of time of non-zero length where for
+all times in the interior of the interval ALG has completed every
+task that has arrived thus far. Additionally for an interval to
+be an ALG-gap the interval must contain no other intervals which
+are also ALG-gaps (i.e. it is a \enquote{maximal} interval
+satisfying our conditions).
+We say that a TAP is \defn{ALG-gap-free} if it contains no ALG-gaps.
+
+Now we prove an important property of OPT.
+\begin{claim}
+  \label{clm:OPT_finishes_first}
+  If there is a scheduling algorithm ALG that completes all tasks by
+  time $t_*$ then OPT finishes all tasks by time $t_*$.
+\end{claim}
+\begin{proof}
+  Say that ALG completes all tasks by time $t_*$. Let $t_0 < t_*$
+  be the most recent time that OPT has completed all tasks that
+  arrive before time $t_0$. If OPT has not finished all tasks by
+  time $t_*$ then it was acting sub-optimally, as it could steal
+  the strategy that ALG used on $[t_0, t_*]$ to achieve lower
+  awake time. In particular, for any tasks that arrive in $[t_0,
+  t_*]$ OPT could schedule them as ALG schedules them. We remark
+  that OPT should not steal all of ALG. 
+\end{proof}
+Note that as an immediate consequence of Claim~\ref{clm:OPT_finishes_first}
+we have that any ALG-gap is an OPT-gap.
+
+Decomposing TAPs into gap-free subsets of the TAP is very useful.
+Part of the reason for this is the following fact:
+\begin{claim}
+  \label{clm:just_consider_gapless}
+  If an algorithm ALG achieves competitive ratio $r$ on
+  ALG-gap-free TAPs, then ALG achieves 
+  competitive ratio $r$ on arbitrary TAPs.
+\end{claim}
+\begin{proof}
+  We partition the tasks based on arrival time, splitting the
+  tasks on the ALG-gaps. That is, we split the tasks into groups
+  so that two tasks $\tau_i, \tau_j$ are in the same group if and
+  only if there are no gaps in between the arrival times of
+  $\tau_i$ and $\tau_j$.
+  We can define an interval of time $I_i$ for each of these
+  ALG-gap-free subsets of the TAP, where $I_i$ is defined so that
+  all tasks in the $i$-th group start and finish at times
+  contained in the interval $I_i$.
+
+  Let $T_{I_i}^{OPT}$ and $T_{I_i}^{ALG}$ denote the awake time
+  of OPT and ALG on interval $I_i$. Because $I_i$ is ALG-gap-free
+  we have $T^{ALG} = \sum_{i} T^{ALG}_{I_i}$.
+  Further, recall that by Claim~\ref{clm:OPT_finishes_first} any
+  ALG-gap is also an OPT-gap, so
+  $T^{OPT} = \sum_{i} T_{I_i}^{OPT}$. 
+  Hence from our assumption that ALG is $r$-competitive on
+  gap-free TAPs, such as the subset of the TAP on the interval
+  $I_i$, we have $T_{I_i}^{ALG} \le r\cdot T_{I_i}^{OPT}$ for
+  all $i$. Summing we get $T^{ALG} \le r\cdot T^{OPT}$, as desired.
+  
+\end{proof}
+
+By Claim~\ref{clm:just_consider_gapless}, in order to bound SGR's
+competitive ratio, it suffices to consider TAPs
+without SGR-gaps. Note however that a TAP without
+SGR-gaps could still have OPT-gaps.
+
+We conclude our analysis of the competitive ratio of SGR in
+Proposition~\ref{prop:2competitive} with an inductive argument on
+the number of OPT-gaps in the TAP.
+First we establish the base case for the argument: we consider
+SGR's competitive ratio on a TAP without OPT-gaps.  
+
+\begin{claim}
+  \label{clm:no_optgaps}
+  SGR is $2$-competitive on any OPT-gap-free TAP.
+\end{claim}
+\begin{proof}
+  Since the TAP is OPT-gap-free we must have
+  \begin{equation}
+    \label{eq:opt_isnt_so_much_better}
+    T^{OPT}(q_1, \ldots, q_{\ell}) \ge T^{SGR}(q_1, \ldots, q_{\ell-1}).
+  \end{equation}
+  Because SGR finishes all $q_{i}$ tasks that arrive at time $t_i$
+  by time $t_{i+1}$ we can actually always decompose
+  $T^{SGR}(q_1, \ldots, q_\ell)$ as 
+  \begin{equation}
+    \label{eq:decomposeSGR}
+    T^{SGR}(q_1, \ldots, q_\ell) = \sum_{i=1}^\ell T^{SGR}(q_i).
+  \end{equation}
+  By Equation~\eqref{eq:decomposeSGR}, and
+  Equation~\eqref{eq:same_single} we thus have 
+  \begin{equation}
+    \label{eq:decompose_rearanged}
+    T^{SGR}(q_1, \ldots, q_\ell) = T^{SGR}(q_1, \ldots, q_{\ell-1}) + T^{OPT}(q_\ell).
+  \end{equation}
+
+  Hence by Equation~\eqref{eq:opt_isnt_so_much_better} and
+  Equation~\eqref{eq:decompose_rearanged} we have
+  \begin{align*}
+    T^{SGR}(q_1, \ldots, q_\ell) &\le T^{OPT}(q_1, \ldots, q_\ell) + T^{OPT}(q_\ell)\\
+                                   &\le 2T^{OPT}(q_1, \ldots, q_\ell),
+  \end{align*}
+  as desired.
+\end{proof}
+
+\begin{proposition}
+  \label{prop:2competitive}
+  SGR is $2$-competitive.
+\end{proposition}
+\begin{proof}
+  The proof is by strong induction on the number of OPT-gaps. 
+  The base case of our induction is established in
+  Claim~\ref{clm:no_optgaps}, which says that if there are $0$
+  OPT-gaps then SGR is $2$-competitive. 
+
+  Consider a TAP that has more than $0$ OPT gaps;
+  say that its first OPT-gap starts at time $t_*$.
+  Let $j$ be the largest index such that verge time $t_j <
+  t_*$.
+
+  Using our inductive hypothesis we have:
+  \begin{align*}
+  &T^{OPT}(q_1, \ldots, q_\ell) \\
+  &\ge T^{OPT}(q_1, \ldots, q_j) + T^{OPT}(q_{j+1}, \ldots, q_{\ell})\\
+  &\ge \frac{1}{2}\paren{T^{SGR}(q_1, \ldots, q_j) + T^{SGR}(q_{j+1}, \ldots, q_{\ell})}\\
+  &=\frac{1}{2} T^{SGR}(q_1, \ldots, q_\ell).
+  \end{align*}
+
+\end{proof}
+
+\subsection{Symmetric-Cost-Ratios Case}
+\label{subsec:symmetriccostratio}
+Next we consider the case where there are different tasks with
+implementations that have different works, but with the
+restriction that the cost ratio of the parallel implementation to
+the serial implementation is some fixed value $k \in [1,p]$
+\footnote{As discussed before, without loss of generality $k\in
+[1,p]$}.
+
+The ideas in this section were inspired by extremely elegant
+analysis of an unrelated scheduling problem in \cite{bd20}. In
+particular, we use the idea of partitioning tasks into levels,
+and of having virtual tasks, introduced by \cite{bd20}.
+
+We define the work of the serial implementation of the largest
+task at verge time $t_1$  to be $1$. All other times are measured
+relative to this definition. We define $s_i$ to be the work of
+the serial implementation of the largest task at verge time
+$t_i$, note that $s_1 = 1$ by definition. 
+
+At each verge time we partition the ready tasks into
+sets called \defn{level-$j$} sets based on their serial work. In
+particular, on verge time $t_i$ the level-$j$ set of tasks consists of 
+the ready tasks with serial work in $[s_i/2^{j+1}, s_i/2^{j}]$.
+We define a \defn{virtual task} to be a collection of tasks.
+If $v_i$ is a virtual task, then we define its serial work to be
+$$\sigma(v_i) = \sum_{\tau \in v_i} \sigma(\tau)$$ and 
+its parallel work to be 
+$$\pi(v_i) = \sum_{\tau \in v_i} \pi(\tau).$$
+
+We say that a set of tasks is \defn{fully compressed} if tasks have been
+partitioned into virtual tasks $v_i$, such that all virtual
+tasks are level-$0$ tasks, or all virtual tasks but one in the
+case that it is impossible for all virtual tasks to be level-$0$.
+
+We propose Algorithm~\ref{alg:lgr}, which we call \defn{LGR}
+(LGR stands for \enquote{leveled greedy}),
+for scheduling in the symmetric-cost-ratio case.
+
+\begin{algorithm}
+  \caption{LGR}
+  \label{alg:lgr}
+  \begin{algorithmic}
+    \While{True}
+      \If{verge time}
+        \State fully compress the tasks 
+        \State $q \gets $ number of virtual tasks 
+        \State schedule $\floor{q/p}$ serial virtual tasks to each processor
+        \State $q' \gets q \bmod p$ 
+        \If{$q' \ge p/k$}
+          \State schedule $q'$ virtual tasks in serial
+          \State giving each processor at most $1$ virtual task
+        \Else
+          \State schedule $q'$ virtual tasks in parallel
+          \State distributing their work equally
+        \EndIf
+      \EndIf
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+In the rest of this subsection we analyze the competitive ratio
+of LGR. We aim to reduce this problem to analysis of the
+competitive ratio of SGR, which was shown in
+Proposition~\ref{prop:2competitive} to be $2$ in the
+symmetric-tasks case.
+
+First we show that we can basically round all the virtual tasks
+sizes up to begin $s_i$  if we are willing to incur a factor of
+$2$ increase to awake time.
+\begin{claim}
+  If we modify the TAP so that all the virtual tasks have size
+  $s_i$ at time $t_i$ then that increases OPT's awake time by at
+  most a factor of $4$. 
+\end{claim}
+\begin{proof}
+  This is pretty much clear, since any level-$0$ virtual task at
+  time $t_i$ has work at least $s_i/2$. 
+  It may seem slightly problematic that there could be a
+  non-level-$0$ virtual task. By absorbing another factor of $2$
+  we can ignore the fact that there could be a non-level-$0$
+  task.
+
+  \todo{Actually wait crap OPT is going to be able to split
+  serial tasks, that doesn't seem super awesome.}
+\end{proof}
+
+\begin{proposition}
+  LGR is $8$-competitive.
+\end{proposition}
+\begin{proof}
+  Note that if all the $m_i$'s were the same then we would be
+  done, as the problem would have been reduced to the
+  symmetric-task case. However, we cannot say that all the
+  $m_i$'s are $1$.
+  \todo{
+  hmm
+}
+\end{proof}
+
+\subsection{General Case}
+Now we are ready to consider the general case, i.e. we place no
+restrictions on the tasks in this Subsection.
+We use the definitions from Subsection
+\ref{subsec:symmetriccostratio} and Subsection
+\ref{subsec:symmetrictasks}.
+We propose Algorithm~\ref{alg:ggr}, which we call
+\defn{GGR} (GGR stands for \enquote{general greed}).
+
+\begin{algorithm}
+  \caption{GGR}
+  \label{alg:ggr}
+  \begin{algorithmic}
+    \While{True}
+      \If{verge time}
+        \State Combine unscheduled ready tasks into virtual tasks
+        to maximize the number of level-$0$ virtual tasks
+        \State $q \gets $ number of virtual tasks 
+        \If{$q \ge p/k$}
+          \State schedule $\min(q, p)$ virtual tasks in serial
+          \State giving each processor at most $1$ virtual task
+        \Else
+          \State schedule a level-$0$ task in parallel
+          \State distributing its work equally 
+        \EndIf
+      \EndIf
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+We claim the following regarding GGR:
+\begin{proposition}
+  GGR is $16$-competitive with OPT.
+\end{proposition}
+\begin{proof}
+  \todo{
+  hmm
+}
+\end{proof}
+

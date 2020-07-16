@@ -1,0 +1,40 @@
+\section{Randomized Scheduling Algorithms}
+Given a particular deterministic scheduling algorithm there will
+be some inputs on which the algorithm will perform poorly. 
+By employing randomization these worst case inputs can be
+mitigated somewhat, at least in expectation.
+
+We propose Algorithm~\ref{alg:rgr}, which we call
+\defn{RGR} (RGR stands for \enquote{randomized greedy}), for this case.
+
+\todo{this alg is outdated}
+\begin{algorithm}
+  \caption{RGR}
+  \label{alg:rgr}
+  \begin{algorithmic}
+    \While{True}
+      \If{verge time}
+        \State sleep for a random amount of time, chosen
+        uniformly at random from something, not really sure what 
+        \State $q \gets $ number of ready tasks
+        \If{$q \ge p/k$}
+          \State schedule $\min(q, p)$ tasks in serial
+          \State giving each processor at most $1$ task
+        \Else
+          \State schedule one task in parallel
+          \State distributing its work equally 
+        \EndIf
+      \EndIf
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{proposition}
+  The expectation of RGR's competitive ratio on any input
+  is at least $1.5$.
+\end{proposition}
+\begin{proof}
+\todo{
+ hmmm. 
+ }
+\end{proof}
