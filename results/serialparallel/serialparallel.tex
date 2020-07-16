@@ -91,6 +91,7 @@
 \end{abstract}
 
 \section{Introduction}
+\subsection{Problem Statement}
 A parallel algorithm is said to be \defn{work-efficient} if the
 work of the parallel algorithm is the same as the work of a
 serial algorithm for the same problem. Most implementations of
@@ -139,6 +140,51 @@ strategy, which we will denote OPT. Note that OPT is able to see
 the whole sequence of tasks in advance.
 The \defn{competitive ratio} of a scheduler is the ratio
 of its awake time to the awake time of OPT on the same input.
+
+\subsection{Problem Motivation}
+Data-centers often get heterogeneous tasks. Being able to schedule
+them efficiently is a fundamental problem. 
+
+\subsection{Related Work}
+An algorithm called Shortest Remaining Processing Time (SRPT),
+and its variants are often useful for minimizing things like mean
+response time.
+
+In \cite{bb20}, Berg et al study a related problem:
+many heterogeneous tasks come in, some which are elastic and
+exhibit perfect linear scaling of performance and some which are
+inelastic which must be run on a single processor, according to
+some stochastic assumptions, and they aim to minimize mean
+response time.
+
+In \cite{is16} Im et al exhibit an algorithm keeps the average
+flow time small. 
+
+In \cite{ga12} Gupta et al prove some impossibility results about
+a problem somewhat similar to our problem.
+
+Clearly related problems are widley studied.
+
+\subsection{Results}
+  We exhibit a scheduler that is $2$-competitive for the
+  symmetric-task case of this problem, a scheduler that is
+  $4$-competitive for the symmetric-cost-ratio case of this
+  problem, and an algorithm that is $8$-competitive for the
+  general case of this problem.
+  Further, we prove that no deterministic scheduler can have a competitive
+  ratio smaller than $1.44$ in general.
+  We also exhibit a randomized scheduler that achieves
+  expected competitive ratio at least $1.5$.
+
+  Also, we look at the problem when the tasks are allowed to do
+  recursion, i.e. they can spawn multiple tasks. In this case we
+  prove XXX.
+
+  We also consider building an oracle to compute OPT, the optimal
+  off-line strategy. We give a $O(2^n)$ time algorithm, where $n$
+  is the number of tasks, that computes a strategy for OPT. We
+  also show that constructing such an oracle is NP-hard.
+
 
 \section{Deterministic Scheduling Algorithms}
 
@@ -199,16 +245,16 @@ for scheduling in the symmetric-tasks case.
 
 In the rest of this subsection we analyze the competitive ratio of SGR.
 
-Consider a TAP $\mathcal{T}$. Let $v$ be the number of verge
-times; note that $v\le n$ which in particular is finite. Let
+Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
+times; note that $\ell \le n$ which in particular is finite. Let
 $t_i$ be the $i$-th time that is a verge time, let $q_i$ be the
 number of ready tasks for SGR at time $t_i$. Let $T^{ALG}(q_1,
-\ldots, q_{v'})$ denote the awake time of a scheduling algorithm
+\ldots, q_{\ell'})$ denote the awake time of a scheduling algorithm
 ALG on the truncation of the TAP $\mathcal{T}$ that only consists
-of tasks arriving at times before $t_{v'}$.
+of tasks arriving at times before $t_{\ell'}$.
 
-First we analyze $T^{OPT}$ and $T^{CHILL}$ for the case where all
-the tasks arrive at a single time, i.e. $v=1$.
+First we analyze $T^{OPT}$ and $T^{SGR}$ for the case where all
+the tasks arrive at a single time.
 Let $$T(q) = \floor{q/p} + \min(1, (q\bmod p)\cdot k/p). $$
 
 \begin{claim}
@@ -343,7 +389,7 @@ Combining Claim~\ref{clm:sgr_single} and
 Claim~\ref{clm:opt_single} we have
 \begin{equation}
   \label{eq:same_single}
-  T^{OPT}(q) = T^{CHILL}(q) = T(q).
+  T^{OPT}(q) = T^{SGR}(q) = T(q).
 \end{equation}
 We remark SGR \enquote{locally} schedules optimally, which is
 why we refer to SGR as \enquote{greedy}. 
@@ -426,27 +472,27 @@ SGR's competitive-ratio on a TAP without OPT-gaps.
   Since the TAP is OPT-gap-free we must have
   \begin{equation}
     \label{eq:opt_isnt_so_much_better}
-    T^{OPT}(q_1, \ldots, q_{v}) \ge T^{SGR}(q_1, \ldots, q_{v-1}).
+    T^{OPT}(q_1, \ldots, q_{\ell}) \ge T^{SGR}(q_1, \ldots, q_{\ell-1}).
   \end{equation}
   Because SGR finishes all $q_{i}$ tasks that arrive at time $t_i$
   by time $t_{i+1}$ we can actually always decompose
-  $T^{SGR}(q_1, \ldots, q_v)$ as 
+  $T^{SGR}(q_1, \ldots, q_\ell)$ as 
   \begin{equation}
     \label{eq:decomposeSGR}
-    T^{SGR}(q_1, \ldots, q_v) = \sum_{i=1}^v T^{SGR}(q_i).
+    T^{SGR}(q_1, \ldots, q_\ell) = \sum_{i=1}^\ell T^{SGR}(q_i).
   \end{equation}
   By Equation~\eqref{eq:decomposeSGR}, and
   Equation~\eqref{eq:same_single} we thus have 
   \begin{equation}
     \label{eq:decompose_rearanged}
-    T^{SGR}(q_1, \ldots, q_v) = T^{SGR}(q_1, \ldots, q_{v-1}) + T^{OPT}(q_v) . 
+    T^{SGR}(q_1, \ldots, q_\ell) = T^{SGR}(q_1, \ldots, q_{\ell-1}) + T^{OPT}(q_\ell).
   \end{equation}
 
   Hence by Equation~\eqref{eq:opt_isnt_so_much_better} and
   Equation~\eqref{eq:decompose_rearanged} we have
   \begin{align*}
-    T^{SGR}(q_1, \ldots, q_v) &\le T^{OPT}(q_1, \ldots, q_v) + T^{OPT}(q_v)\\
-                                   &\le 2T^{OPT}(q_1, \ldots, q_v),
+    T^{SGR}(q_1, \ldots, q_\ell) &\le T^{OPT}(q_1, \ldots, q_\ell) + T^{OPT}(q_\ell)\\
+                                   &\le 2T^{OPT}(q_1, \ldots, q_\ell),
   \end{align*}
   as desired.
 \end{proof}
@@ -468,39 +514,48 @@ SGR's competitive-ratio on a TAP without OPT-gaps.
 
   Using our inductive hypothesis we have:
   \begin{align*}
-  &T^{OPT}(q_1, \ldots, q_v) \\
-  &\ge T^{OPT}(q_1, \ldots, q_j) + T^{OPT}(q_{j+1}, \ldots, q_{v})\\
-  &\ge \frac{1}{2}\paren{T^{SGR}(q_1, \ldots, q_j) + T^{SGR}(q_{j+1}, \ldots, q_{v})}\\
-  &=\frac{1}{2} T^{SGR}(q_1, \ldots, q_v).
+  &T^{OPT}(q_1, \ldots, q_\ell) \\
+  &\ge T^{OPT}(q_1, \ldots, q_j) + T^{OPT}(q_{j+1}, \ldots, q_{\ell})\\
+  &\ge \frac{1}{2}\paren{T^{SGR}(q_1, \ldots, q_j) + T^{SGR}(q_{j+1}, \ldots, q_{\ell})}\\
+  &=\frac{1}{2} T^{SGR}(q_1, \ldots, q_\ell).
   \end{align*}
 
 \end{proof}
-
 
 \subsection{Symmetric-Cost-Ratios Case}
 \label{subsec:symmetriccostratio}
 Next we consider the case where there are different tasks with
 implementations that have different works, but with the
 restriction that the cost ratio of the parallel implementation to
-the serial implementation is some fixed value $k$.
+the serial implementation is some fixed value $k \in [1,p]$
+\footnote{As discussed before, without loss of generality $k\in
+[1,p]$}.
 
 The ideas in this section were inspired by extremely elegant
-analysis of an unrelated scheduling problem in \cite{bamboo20}.
+analysis of an unrelated scheduling problem in \cite{bd20}. In
+particular, we use the idea of partitioning tasks into levels,
+and of having virtual tasks, introduced by \cite{bd20}.
 
-Making a global definition of $1$ unit of work is now difficult
-to do in a meaningful way, so we do not do this. Instead, at
-every verge time we define locally $1$ unit of work to be the
-work of the serial implementation of the task with the serial
-implementation with the most work. 
-Further, we partition the unscheduled ready tasks at a given verge time into
-sets called \defn{level-$i$} sets based on the work of their serial
-implementation: the level-$i$ set of tasks on a verge time is the
-unscheduled ready tasks that have serial implementation's with
-work in $[1/2^{i+1}, 1/2^{i}]$.
-We now define a \defn{virtual-task} to be a collection of tasks.
-The work of the serial and parallel implementations of a
-virtual-task are the sums of the works of the serial and parallel
-implementations of the virtual-tasks constituent tasks.
+We define the work of the serial implementation of the largest
+task at verge time $t_1$  to be $1$. All other times are measured
+relative to this definition. We define $m_i$ to be the work of
+the serial implementation of the largest task at verge time
+$t_i$, note $m_1 = 1$ by definition. 
+
+At each verge time we partition the ready tasks into
+sets called \defn{level-$j$} sets based on their serial work. In
+particular, on verge time $t_i$ the level-$j$ set of tasks consists of 
+the ready tasks with serial work in $[m_i/2^{j+1}, m_i/2^{j}]$.
+We define a \defn{virtual task} to be a collection of tasks.
+If $v_i$ is a virtual task, then we define its serial work to be
+$$\sigma(v_i) = \sum_{\tau \in v_i} \sigma(\tau)$$ and 
+its parallel work to be 
+$$\pi(v_i) = \sum_{\tau \in v_i} \pi(\tau).$$
+
+We say that a set of tasks is \defn{fully compressed} if tasks have been
+partitioned into virtual tasks $v_i$, such that all virtual
+tasks are level-$0$ tasks, or all virtual tasks but one in the
+case that it is impossible for all virtual tasks to be level-$0$.
 
 We propose Algorithm~\ref{alg:lgr}, which we call \defn{LGR}
 (LGR stands for \enquote{leveled greedy}),
@@ -512,15 +567,16 @@ for scheduling in the symmetric-cost-ratio case.
   \begin{algorithmic}
     \While{True}
       \If{verge time}
-        \State Combine unscheduled ready tasks into virtual-tasks
-        to maximize the number of level-$0$ virtual-tasks
-        \State $q \gets $ number of virtual-tasks 
-        \If{$q \ge p/k$}
-          \State schedule $\min(q, p)$ virtual-tasks in serial
-          \State giving each processor at most $1$ virtual-task
+        \State fully compress the tasks 
+        \State $q \gets $ number of virtual tasks 
+        \State schedule $\floor{q/p}$ serial virtual tasks to each processor
+        \State $q' \gets q \bmod p$ 
+        \If{$q' \ge p/k$}
+          \State schedule $q'$ virtual tasks in serial
+          \State giving each processor at most $1$ virtual task
         \Else
-          \State schedule a level-$0$ task in parallel
-          \State distributing its work equally 
+          \State schedule $q'$ virtual tasks in parallel
+          \State distributing their work equally
         \EndIf
       \EndIf
     \EndWhile
@@ -553,12 +609,12 @@ We propose Algorithm~\ref{alg:ggr}, which we call
   \begin{algorithmic}
     \While{True}
       \If{verge time}
-        \State Combine unscheduled ready tasks into virtual-tasks
-        to maximize the number of level-$0$ virtual-tasks
-        \State $q \gets $ number of virtual-tasks 
+        \State Combine unscheduled ready tasks into virtual tasks
+        to maximize the number of level-$0$ virtual tasks
+        \State $q \gets $ number of virtual tasks 
         \If{$q \ge p/k$}
-          \State schedule $\min(q, p)$ virtual-tasks in serial
-          \State giving each processor at most $1$ virtual-task
+          \State schedule $\min(q, p)$ virtual tasks in serial
+          \State giving each processor at most $1$ virtual task
         \Else
           \State schedule a level-$0$ task in parallel
           \State distributing its work equally 
