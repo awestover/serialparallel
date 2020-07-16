@@ -34,15 +34,22 @@ We propose Algorithm~\ref{alg:gr}, which we call \defn{GR}
   \end{algorithmic}
 \end{algorithm}
 
-ORACLE-1 is an algorithm that yields a schedule achieveing
-minimal awake time, i.e. the same awake time as OPT, on a TAP
-where all tasks arrive at the same time. In
-Theorem~\ref{thm:cakefrosting} we establish that ORACLE-1, which
-we specify in Algorithm~\ref{alg:opt_oracle}, is an oracle for
-OPT on TAPs where all tasks arrive at a single time, hence
-showing that GR can actually be computed. Before analyzing
-ORACLE-1, which is a quite involved process, we analyze the
-competitive ratio of GR assuming the existence of ORACLE-1. 
+A \defn{single-time-TAP} is a TAP where all tasks arrive at a
+single time. ORACLE-1 is an algorithm that yields a schedule
+achieveing minimal awake time, i.e. the same awake time as OPT,
+on single-time-TAPs. In Theorem~\ref{thm:cakefrosting} we
+establish that ORACLE-1, which we specify in
+Algorithm~\ref{alg:opt_oracle}, is an oracle for OPT on
+single-time-TAPs, hence showing that GR can actually be computed.
+We remark that it is not obvious that an oracle for OPT can be
+computed in finite time, even in this special case: there are an
+uncountably infinite number of possible scheduling strategies
+that OPT can choose from. Nevertheless, we show how to consider a
+finite search space that a brute force search can actually be
+performed on, at least in the special case of single-time-TAPs.
+Before analyzing ORACLE-1, which is a quite involved process, we
+analyze the competitive ratio of GR assuming the existence of
+ORACLE-1. 
 
 Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
 times for $\mathcal{T}$; note that $\ell \le n$ which in
@@ -53,7 +60,8 @@ awake time of a scheduling algorithm ALG on the truncation of the
 TAP $\mathcal{T}$ that only consists of tasks arriving at times
 before $t_{\ell'}$.
 
-By construction we have
+By construction of ORACLE-1 we have that for single-time-TAPs OPT
+and GR achieve the same awake time, i.e.
 \begin{equation}
   \label{eq:same_single}
   T^{OPT}(q) = T^{GR}(q).
@@ -195,7 +203,7 @@ ORACLE-1.
 
 \todo{simpler description of frosting}
 \begin{algorithm}
-  \caption{Single-time-TAP OPT Oracle}
+  \caption{ORACLE-1: oracle for OPT on single-time-TAPs}
   \label{alg:opt_oracle}
   \begin{algorithmic}
     \State \textbf{Input:} tasks $\tau_1,\ldots, \tau_n$ all with $t(\tau_i) = 0$
