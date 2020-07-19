@@ -60,34 +60,37 @@
 \maketitle
 
 \begin{abstract}
-  There are many problems for which the best parallel algorithms
-  have larger cost than the best serial algorithms. 
-  We consider a scheduler that is receiving many tasks with
-  serial and parallel implementations that have potentially
-  different costs. The scheduler can choose whether to run each
-  task in serial or in parallel.
-  The scheduler aims to minimize the total time that it has
-  unfinished tasks. We analyze the competitive ratio of
-  schedulers, i.e. the ratio of the time of a scheduler to the
-  optimal time.
+First we consider the problem of minimizing awake time. We show
+that, very surprisingly, the general off-line problem can
+essentially be reduced to the case where all tasks are available
+from the start, a setting in which the off-line and on-line
+algorithms are of course the same. In particular, we give a
+simple deterministic $2$-competitive off-line scheduling
+algorithm, that does not even need to use preemption! 
+The $2$-competitive algorithm relies on solving the
+single-arrival-time case of the off-line problem; the only exact
+algorithm that we found for this has exponential running time.
+However, we can get a constant approximation algorithm for the
+problem with quasi-polynomial running time in $n$.
 
-  We construct a simple deterministic scheduler that does not use
-  preemption that is $2$-competitive for the scheduling problem.
-  We also prove that no deterministic scheduler can have a
-  competitive ratio smaller than $1.44$ in general.
-  We also exhibit a randomized scheduler that achieves
-  expected competitive ratio at least $1.5$.
+Next we consider the problem of minimizing mean response time.
+We show XXX.
 
-  Also, we look at the problem when the tasks are allowed to do
-  recursion, i.e. they can spawn multiple tasks. In this case we
-  prove XXX.
+We also prove several impossibility results.
+We show that no deterministic scheduler can have a
+competitive ratio smaller than $1.25$ in general.
+Even with randomization, we show that for any randomized
+algorithm there is some input on which the algorithm achieves
+competitive ratio at least $1.0625$ with high probability.
 
+Also, we look at the problem when the tasks are allowed to do
+recursion, i.e. they can spawn multiple tasks. In this case we
+prove XXX.
 \end{abstract}
 
 \input{sec1_intro.tex}
 \input{sec2_greedy.tex}
 \input{sec3_lowerbound.tex}
-% \input{sec4_randomized.tex}
 % \input{sec5_recursion.tex}
 
 % \section{Conclusions}

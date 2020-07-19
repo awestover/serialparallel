@@ -1,22 +1,22 @@
-\section{A Deterministic Scheduling Algorithm}
-In this section we present a simple deterministic scheduling
-algorithm that does not use preemption. We show that this
-algorithm is $2$-competitive with OPT.
+\section{A $2$-Competitive Algorithm for Awake Time} 
+In this section we give a simple deterministic scheduling
+algorithm --- that does not use preemption --- for minimizing
+awake time; note that we only consider the metric of awake time
+in this section. We show that our algorithm is $2$-competitive
+with OPT (in terms of awake time) on all TAPs.
 
-First we note that without loss of generality we may consider
-TAPs where the cost ratio $\pi(\tau)/\sigma(\tau)$ for any task
-$\tau$ is in $[1,p]$; if $\pi(\tau)/\sigma(\tau) < 1$, i.e. the
-parallel implementation has lower work than the serial
-implementation, then the scheduler clearly should never use the
-serial implementation of this algorithm, so we can replace the
-serial implementation with the parallel implementation and hence
-get cost ratio $1$, similarly, if $\pi(\tau)/\sigma(\tau) > p$
-then the scheduler should never run the parallel task and we can
-replace the parallel implementation of the task with the serial
+Note that without loss of generality we may consider TAPs where
+the cost ratio $\pi(\tau)/\sigma(\tau) \in [1,p]$ for all tasks
+$\tau$; if $\pi(\tau)/\sigma(\tau) < 1$ then the scheduler
+clearly should never run $\tau$ in serial so we can replace the
+serial implementation with the parallel implementation to get
+cost ratio $1$, similarly, if $\pi(\tau)/\sigma(\tau) > p$ then
+the scheduler should never run $\tau$ in parallel and we can
+replace the parallel implementation with the serial
 implementation to get cost ratio $p$.
 
 We say that a time is a \defn{verge} time for our algorithm if at
-this time no processors are performing tasks and there is at
+this time no processors have work assigned to them, and there is at
 least one ready task.
 
 We propose Algorithm~\ref{alg:gr}, which we call \defn{GR}
@@ -36,20 +36,19 @@ We propose Algorithm~\ref{alg:gr}, which we call \defn{GR}
 
 A \defn{single-time-TAP} is a TAP where all tasks arrive at a
 single time. ORACLE-1 is an algorithm that yields a schedule
-achieveing minimal awake time, i.e. the same awake time as OPT,
-on single-time-TAPs. In Lemma~\ref{lem:frosting} we
-establish that ORACLE-1, which we specify in
+achieving minimal awake time, i.e. the same awake time as OPT,
+on single-time-TAPs. In Lemma~\ref{lem:frosting} we establish
+that ORACLE-1, which we specify in
 Algorithm~\ref{alg:opt_oracle}, is an oracle for OPT on
 single-time-TAPs, hence showing that GR can actually be computed.
 We remark that it is not obvious that an oracle for OPT can be
 computed in finite time, even in this special case: there are an
 uncountably infinite number of possible scheduling strategies
 that OPT can choose from. Nevertheless, we show how to consider a
-finite search space that a brute force search can actually be
-performed on, at least in the special case of single-time-TAPs.
-Before analyzing ORACLE-1, which is a quite involved process, we
-analyze the competitive ratio of GR assuming the existence of
-ORACLE-1. 
+finite search space that a search can actually be performed on,
+at least in the special case of single-time-TAPs. Before
+analyzing ORACLE-1 we analyze the competitive ratio of GR
+assuming the correctness of ORACLE-1. 
 
 Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
 times for $\mathcal{T}$; note that $\ell \le n$ which in
@@ -71,13 +70,13 @@ we refer to GR as \enquote{greedy}.
 
 An \defn{ALG-gap} is an interval of time $I$ of non-zero length where for
 all times in the interior of $I$ ALG has completed every
-task that has arrived thus far. Additionally for an interval to
+task that has arrived thus far. Additionally, for an interval to
 be an ALG-gap the interval must contain no other intervals which
 are also ALG-gaps (i.e. it is a \enquote{maximal} interval
 satisfying our conditions).
 We say that a TAP is \defn{ALG-gap-free} if it contains no ALG-gaps.
 
-Now we prove an important property of OPT.
+Now we prove an obvious property of OPT.
 \begin{claim}
   \label{clm:OPT_finishes_first}
   If there is a scheduling algorithm ALG that completes all tasks by
@@ -90,8 +89,7 @@ Now we prove an important property of OPT.
   time $t_*$ then it was acting sub-optimally, as it could steal
   the strategy that ALG used on $[t_0, t_*]$ to achieve lower
   awake time. In particular, for any tasks that arrive in $[t_0,
-  t_*]$ OPT could schedule them as ALG schedules them. We remark
-  that OPT should not steal all of ALG. 
+  t_*]$ OPT could schedule them as ALG schedules them. 
 \end{proof}
 As an immediate consequence of Claim~\ref{clm:OPT_finishes_first}
 we have that any ALG-gap is a subset of an OPT-gap.
@@ -138,7 +136,7 @@ Proposition~\ref{prop:2competitive} with an inductive argument on
 the number of OPT-gaps in the TAP.
 First we establish the base case for the argument in
 Claim~\ref{clm:no_optgaps}: we consider
-GR's competitive ratio on a TAP without OPT-gaps.  
+GR's competitive ratio on an OPT-gap-free TAP.  
 
 \begin{claim}
   \label{clm:no_optgaps}
@@ -213,7 +211,7 @@ ORACLE-1.
     \State $\text{bestSchedule} \gets $ schedule everything in serial on $\rho_1$
     \For{$I \in \{0,1\}^n$} 
       \State $x \gets \sum_{i=1}^n I_i$
-      \For{$J \in \{1, \ldots, n\}^x$}
+      \For{$J \in \{1, \ldots, p\}^x$}
         \State $j \gets 0$
         \For{$i \in \{1,2,\ldots, n\}$}
           \If{$I_i=1$}
@@ -249,10 +247,10 @@ We can thus do a brute-force search over all the ways to assign some
 tasks to run in serial and to run on specific processors, and
 then put the parallel tasks on top \enquote{like frosting on a cake}. 
 
-We remark that the running time of ORACLE-1 for $n$ tasks is at
-least $\sum_{i=1}^n n^{\binom{n}{i}} \ge 2^{2^n},$ which is
-pretty big. Nevertheless the existence of our algorithm is
-interesting, and the running time can almost certainly be reduced.
+We remark that the running time of ORACLE-1 for $n$ tasks is much
+larger than $(2p)^n$ which is extremely large. Nevertheless the
+existence of our algorithm is interesting; we reduce the running
+time of our algorithm later.
 
 We now prove that ORACLE-1 actually does compute a schedule with
 awake time the same as that of OPT.
@@ -269,4 +267,13 @@ awake time the same as that of OPT.
   parallel tasks in the frosting method, hence OPT's awake time
   is at least that of ORACLE-1.
 \end{proof}
+
+This existence proof is nice and simple. We now consider how to
+more efficiently compute the best schedule for the case where all
+tasks arrive at the start. In fact, we consider making an
+algorithm to get a constant approximation of this, which will
+still give an algorithm with constant competitive ratio.
+
+\todo{we round everything}
+
 
