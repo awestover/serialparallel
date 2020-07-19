@@ -1,0 +1,24 @@
+\section{An Algorithm for Optimizing Response Time}
+\label{sec:responsetime}
+
+In this section we construct an algorithm that achieves low
+response time. As shown in Section~\ref{sec:lowerbounds}, our
+algorithm necessarily uses preemption.
+We propose Algorithm~\ref{alg:pr}, which we call $\PR{\alpha}$
+\begin{algorithm}
+  \caption{$\PR{\alpha}$}
+  \label{alg:pr}
+  \begin{algorithmic}
+    \While{True}
+      \State OPT-schedule $\gets$ how OPT would schedule tasks if
+      all tasks were preempted and no more tasks come.
+      \State projected-schedule $\gets$ what if we just wait
+      \If{OPT-schedule response time $\le \alpha \cdot$ projected response time}
+        \State Run OPT-schedule
+      \EndIf
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+
+
