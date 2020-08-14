@@ -1,0 +1,73 @@
+{\color{red}
+Here is a way to 8-approximate ORACLE-1 in time $2^{\log^2 n}$;
+note that quasipolynomial time is much better than super-exponential time.
+
+Define 1 unit of work to be the work of the largest serial
+implementation.
+Round the serial works to be powers of 1/2.
+Round the cost ratios (work efficiencies) to be powers of 2. 
+
+Now we make a key observation: there are now only 
+$\lg n \cdot \lg p$ different types of tasks!
+Because we can ignore tasks with less than $1/n = 1/2^{\lg n}$ work
+in their serial implementation because in total they can't
+contribute more than $1$ unit of work 
+and of course the cost ratios are in $[1,p]$.
+
+But this isn't so many types of tasks! Say there are $t_i$ of
+task $i$, then the time it takes to brute force try all ways of
+doing some tasks in serial and some in parallel is 
+$$\prod t_i.$$
+
+By AM-GM, and using $n \gg p$,
+\begin{align*}
+\prod_{i=1}^{\lg p \lg n} t_i &\le \paren{\frac{1}{\lg p \lg n} \sum t_i}^{\lg p \lg n} \\
+&= \paren{\frac{n}{\lg p \lg n}}^{\lg p \lg n}\\
+&\le 2^{\log^2 n \lg p}.
+\end{align*}
+
+We can speed this up even further.
+Consider a $\lg n \times \lg p$ matrix with $A[i,j]$ being the number of tasks that
+have serial work $1/2^i$ and cost ratio $2^j$.
+Consider a row of the matrix $A$. Clearly we should schedule at
+least $p \floor{\sum_j A[i, j]/p}$ tasks with serial work $1/2^i$ in
+serial; by doing so we incur no inefficiency! 
+So now our algorithm for computing ORACLE-1 goes as follows:
+compute the matrix $A$. Schedule tasks and update $A$
+accordingly; this will result in every row-sum of $A$ being at
+most $p-1$.
+This has already improved our running time, by simply trying
+every quantity that could be scheduled in serial for each serial
+work size (note that within a row of the matrix it is always
+better to make the tasks scheduled in serial be the tasks with
+higher cost ratios). This strategy would have running time
+$O(p^{\lg n})$ or equivalently $O(n^{\lg p})$.
+
+But we can make it even faster!
+We claim that we can $3$-approximate OPT in this special case
+where all tasks are modified to have power of $1/2$ serial works
+and power of $2$ cost ratios, and where we ignore all tasks with
+work below $1/n$, if we know what OPT's awake time is.
+Say that OPT's awake time is $d$. Then our strategy is to
+schedule any task with serial work greater than $d$ in parallel,
+and to schedule any task with serial work less than $d$ in
+serial. OPT must also have scheduled all tasks with serial work
+greater than $d$ in parallel, so doing those tasks requires at
+most time $d$. We can upper bound the amount of time it takes to
+do the serial tasks by $d + d/2 + d/4 + \cdots = 2d$, by
+remembering that there are at most $p-1$ of each type of serial
+task. Hence overall we have bounded our awake time by $3d$.
+Of course we don't know what OPT's awake time is, however, we can
+simply iterate over the $\lg n$ possible serial work thresholds and
+try each one; at the end we take the best of these.
+
+In general this strategy is guaranteed to $24$-approximate OPT.
+
+There is some sort of trade-off curve between how good the
+approximation is and the running time of our algorithm.
+However, at least asymptotically, it is satisfactory to have an
+$O(1)$-approximation algorithm for OPT with such good running
+time, in particular running time $O(n + (\lg p)(\lg n)^2)$ which is
+just $O(n)$.
+}
+

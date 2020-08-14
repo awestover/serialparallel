@@ -14,8 +14,8 @@ time). We have $p$ processors $\rho_1, \ldots, \rho_p$. Each task
 $\tau_i$ has a parallel implementation with work $\pi(\tau_i)$ and a
 serial implementation with work $\sigma(\tau_i)$. The tasks will become
 available at some times $t(\tau_1), \ldots, t(\tau_n)$. 
-The sequence of tasks with their associated parallel and serial
-implementations works and with their associated arrival times is
+The set of tasks with their associated parallel and serial
+implementation's works and with their associated arrival times is
 called a \defn{task arrival plan} or \defn{TAP} for short.
 
 The scheduler maintains a set of \defn{ready} tasks, which are
@@ -35,6 +35,16 @@ run the parallel versions of the tasks --- even though they are
 possibly not work efficient, i.e. $\pi(\tau) > \sigma(\tau)$ ---
 because by so doing at least the scheduler can achieve
 parallelism within tasks.
+
+We also consider a generalization of the Serial-Parallel
+Scheduling Problem to the case where the task arrival times are
+not fixed, but rather some tasks may become available only after
+the completion of other tasks. Put another way, we consider a
+version of the problem where the tasks have dependencies. We
+refer to the set of tasks along with their associated parallel
+and serial implementation's works and their associated arrival
+times or dependency (i.e. what task they spawn after) as a
+\defn{DTAP} (D stands for dependency).
 
 Let the \defn{awake time} of the scheduler be the duration of
 time over which the scheduler has unfinished tasks. One natural
@@ -91,7 +101,7 @@ simple deterministic $2$-competitive off-line scheduling
 algorithm, that does not even need to use preemption! The
 $2$-competitive algorithm relies on solving a special case of the
 off-line problem where all tasks arrive at the same time. We give
-a $3$-approximation algorithm for the single-arrival-time
+a $2$-approximation algorithm for the single-arrival-time
 off-line problem with running time $O(n)$.
 
 We also prove several impossibility results.

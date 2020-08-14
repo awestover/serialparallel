@@ -275,82 +275,8 @@ tasks arrive at the start. In fact, we consider making an
 algorithm to get a constant approximation of this, which will
 still give an algorithm with constant competitive ratio.
 
-{\color{red}
-Here is a way to 8-approximate ORACLE-1 in time $2^{\log^2 n}$;
-note that quasipolynomial time is much better than super-exponential time.
-
-Define 1 unit of work to be the work of the largest serial
-implementation.
-Round the serial works to be powers of 1/2.
-Round the cost ratios (work efficiencies) to be powers of 2. 
-
-Now we make a key observation: there are now only 
-$\lg n \cdot \lg p$ different types of tasks!
-Because we can ignore tasks with less than $1/n = 1/2^{\lg n}$ work
-in their serial implementation because in total they can't
-contribute more than $1$ unit of work 
-and of course the cost ratios are in $[1,p]$.
-
-But this isn't so many types of tasks! Say there are $t_i$ of
-task $i$, then the time it takes to brute force try all ways of
-doing some tasks in serial and some in parallel is 
-$$\prod t_i.$$
-
-By AM-GM, and using $n \gg p$,
-\begin{align*}
-\prod_{i=1}^{\lg p \lg n} t_i &\le \paren{\frac{1}{\lg p \lg n} \sum t_i}^{\lg p \lg n} \\
-&= \paren{\frac{n}{\lg p \lg n}}^{\lg p \lg n}\\
-&\le 2^{\log^2 n \lg p}.
-\end{align*}
-
-We can speed this up even further.
-Consider a $\lg n \times \lg p$ matrix with $A[i,j]$ being the number of tasks that
-have serial work $1/2^i$ and cost ratio $2^j$.
-Consider a row of the matrix $A$. Clearly we should schedule at
-least $p \floor{\sum_j A[i, j]/p}$ tasks with serial work $1/2^i$ in
-serial; by doing so we incur no inefficiency! 
-So now our algorithm for computing ORACLE-1 goes as follows:
-compute the matrix $A$. Schedule tasks and update $A$
-accordingly; this will result in every row-sum of $A$ being at
-most $p-1$.
-This has already improved our running time, by simply trying
-every quantity that could be scheduled in serial for each serial
-work size (note that within a row of the matrix it is always
-better to make the tasks scheduled in serial be the tasks with
-higher cost ratios). This strategy would have running time
-$O(p^{\lg n})$ or equivalently $O(n^{\lg p})$.
-
-But we can make it even faster!
-We claim that we can $3$-approximate OPT in this special case
-where all tasks are modified to have power of $1/2$ serial works
-and power of $2$ cost ratios, and where we ignore all tasks with
-work below $1/n$, if we know what OPT's awake time is.
-Say that OPT's awake time is $d$. Then our strategy is to
-schedule any task with serial work greater than $d$ in parallel,
-and to schedule any task with serial work less than $d$ in
-serial. OPT must also have scheduled all tasks with serial work
-greater than $d$ in parallel, so doing those tasks requires at
-most time $d$. We can upper bound the amount of time it takes to
-do the serial tasks by $d + d/2 + d/4 + \cdots = 2d$, by
-remembering that there are at most $p-1$ of each type of serial
-task. Hence overall we have bounded our awake time by $3d$.
-Of course we don't know what OPT's awake time is, however, we can
-simply iterate over the $\lg n$ possible serial work thresholds and
-try each one; at the end we take the best of these.
-
-In general this strategy is guaranteed to $24$-approximate OPT.
-
-There is some sort of trade-off curve between how good the
-approximation is and the running time of our algorithm.
-However, at least asymptotically, it is satisfactory to have an
-$O(1)$-approximation algorithm for OPT with such good running
-time, in particular running time $O(n + (\lg p)(\lg n)^2)$ which is
-just $O(n)$.
-}
-
-{\color{blue}
-  We propose Algorithm~\ref{alg:thresh}, which we call THRESH, as a simple way to
-  $3$-approximate ORACLE-1.
+We propose Algorithm~\ref{alg:thresh}, which we call THRESH, as a
+simple way to $2$-approximate ORACLE-1.
 
 \begin{algorithm}
   \caption{THRESH}
@@ -397,6 +323,7 @@ tasks, for the optimal value of $i_*$.
 Clearly THRESH requires space $\Theta(1)$ beyond the input to
 implement, and has running time $\Theta(n)$, given that the input
 is pre-sorted.
+
 In order to remove the assumption that the input is pre-sorted,
 we can sort the tasks at the start of the algorithm, using heap
 sort or radix sort. If we simply use heap sort then we clearly
@@ -406,7 +333,7 @@ On the other hand, if we use radix sort, it is conceivable that
 we could do better. First, if the tasks can be assumed to have
 serial works that can only take on $2^{O(1)}$ possible values,
 then the radix sort can be performed in linear time, in-place,
-resulting in a $3$-competitive algorithm that uses $O(1)$ memory
+resulting in a $2$-competitive algorithm that uses $O(1)$ memory
 and $O(n)$ time. On the other hand, if such an assumption cannot
 be made, then if better running time is still desired, then it
 can be achieved at a cost to the competitive-ratio. Let $1$ be
@@ -421,11 +348,11 @@ counting sort in time $\Theta(n+\log(np))$. On the other hand,
 using radix sort we could do the sort in time $\Theta(n \log
 (np))$ using only $\Theta(1)$ auxiliary space. 
 Since the tasks are only approximately sorted we can only
-guarantee $6$-competitiveness in this case: this is clear by
+guarantee $4$-competitiveness in this case: this is clear by
 noting that increasing the serial works of all tasks by a factor
 of $2$ would double the best attainable awake time.
 
-Now we show why THRESH is $3$-competitive.
+Now we show why THRESH is $2$-competitive.
 Consider OPT's strategy.
 Let $\tau_{i_0}$ be the task with the largest serial work that
 OPT schedules in serial. Recalling that the tasks are sorted by
@@ -436,7 +363,6 @@ OPT's awake time is obviously at least $(w^{OPT}_\pi +
 w^{OPT}_\sigma)/p$. OPT's awake time is also obviously at least
 $\sigma(\tau_{i_0})$.
 
-
 Think about the sequential thing.
 Ignore $\sigma(\tau_{i_*})$. Then $\rho_i$ always has less work
 than all the other processors. Of course in reality $\rho_1$ has
@@ -445,9 +371,6 @@ So we have that all processors have serial work at most
 $$\sum_{i > i_*} \sigma(\tau_i)/p + \sigma(\tau_{i_*}).$$
 Add on to that $$\sum_{i \le i_*} \pi(\tau_i)/p.$$
 
-Um, if $THRESH \le a + b$, and $OPT \ge a, OPT \ge b$, then it
-sounds like $THRESH \le 2 OPT$, i.e. we're $2$-competitive. I
-honestly wasn't even sure we were $3$-competitive, looks like
-$2$. \textbf{Check this in the morning, I'm tired.}
+If $x \le a + b$, and $y \ge a, y \ge b$, then obviously $x \le
+2y$. Thus, we're $2$-competitive. 
 
-}

@@ -8,3 +8,8 @@ potentially different costs. The scheduler can choose whether to
 run each task in serial or in parallel, and aims to either
 minimize mean response time, or total awake time. 
 
+![a task](results/serialparallel/imgs/task_img.png)
+
+![a lower bound
+proof](results/serialparallel/imgs/unknown_dependencies_proof.png)
+
