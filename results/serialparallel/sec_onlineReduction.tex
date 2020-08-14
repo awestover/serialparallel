@@ -269,12 +269,13 @@ awake time the same as that of OPT.
   is at least that of ORACLE-1.
 \end{proof}
 
-This existence proof is nice and simple. We now consider how to
+This existence proof is nice. We now consider how to
 more efficiently compute the best schedule for the case where all
 tasks arrive at the start. In fact, we consider making an
 algorithm to get a constant approximation of this, which will
 still give an algorithm with constant competitive ratio.
 
+{\color{red}
 Here is a way to 8-approximate ORACLE-1 in time $2^{\log^2 n}$;
 note that quasipolynomial time is much better than super-exponential time.
 
@@ -345,5 +346,108 @@ However, at least asymptotically, it is satisfactory to have an
 $O(1)$-approximation algorithm for OPT with such good running
 time, in particular running time $O(n + (\lg p)(\lg n)^2)$ which is
 just $O(n)$.
+}
+
+{\color{blue}
+  We propose Algorithm~\ref{alg:thresh}, which we call THRESH, as a simple way to
+  $3$-approximate ORACLE-1.
+
+\begin{algorithm}
+  \caption{THRESH}
+  \label{alg:thresh}
+  \begin{algorithmic}
+    \State \textbf{Input:} tasks $\tau_1,\ldots, \tau_n$ with
+    $\sigma(\tau_1) \ge \sigma(\tau_2)\ge \cdots \ge
+    \sigma(\tau_n)$ all with $t(\tau_i) = 0$
+    \State \textbf{Output:} a way to schedule the tasks to
+    processors $\rho_1, \ldots, \rho_p$ that achieves awake time
+    at most $3$ times the optimal awake time
+    \State
+    \State $w_\sigma \gets \sum_i \sigma(\tau_i)$
+    \State $w_\pi \gets 0$
+    \State $a \gets 0$, $i_* = 0$
+    \For{$i \in [n]$}
+      \State $w_\sigma \gets w_\sigma - \sigma(\tau_i)$
+      \State $w_\pi \gets w_\pi + \pi(\tau_i)$
+      \If{$i < n$}
+        \State $a_0 = w_\sigma / p + \sigma(\tau_{i+1}) + w_\pi/p$
+      \Else
+        \State $a_0 = w_\pi/p$
+      \EndIf
+      \If{$a_0 \le a$}
+        \State $i_* \gets i$
+        \State $a \gets a_0$
+      \EndIf
+    \EndFor
+    \State Schedule tasks $\tau_1, \ldots, \tau_{i_*}$ in
+    parallel, distributing their work equally among the
+    processors.
+    \State $j \gets 0$
+    \For{$k \in \{i_* + 1, \ldots, n\} $}
+    \State Schedule $\tau_{k}$ in serial on processor $\rho_{1+(j \bmod p)}$
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+Put simply THRESH schedules the $i_*$ tasks with largest serial
+work in parallel, distributing their work equally, and schedules
+the rest of the tasks in serial, sequentially giving out the
+tasks, for the optimal value of $i_*$.
+
+Clearly THRESH requires space $\Theta(1)$ beyond the input to
+implement, and has running time $\Theta(n)$, given that the input
+is pre-sorted.
+In order to remove the assumption that the input is pre-sorted,
+we can sort the tasks at the start of the algorithm, using heap
+sort or radix sort. If we simply use heap sort then we clearly
+will have running time $\Theta(n \log n)$ but still have $O(1)$
+space requirement, and have competitive ratio $3$ with ORACLE-1.
+On the other hand, if we use radix sort, it is conceivable that
+we could do better. First, if the tasks can be assumed to have
+serial works that can only take on $2^{O(1)}$ possible values,
+then the radix sort can be performed in linear time, in-place,
+resulting in a $3$-competitive algorithm that uses $O(1)$ memory
+and $O(n)$ time. On the other hand, if such an assumption cannot
+be made, then if better running time is still desired, then it
+can be achieved at a cost to the competitive-ratio. Let $1$ be
+the largest serial work of any task. If we sort the tasks based
+on the key of which bucket $[1/2^i, 1/2^{i-1}]$ the task's
+serial work falls in, except saying
+that any tasks with work less than $1/2^{\lg (np)}$ fall in the
+same bucket, then there are only $\log n + \log p$ distinct keys,
+so sorting can be done much faster. If we are willing to spend
+$\Theta(n + \log (np))$ space, then the sorting can be done by
+counting sort in time $\Theta(n+\log(np))$. On the other hand,
+using radix sort we could do the sort in time $\Theta(n \log
+(np))$ using only $\Theta(1)$ auxiliary space. 
+Since the tasks are only approximately sorted we can only
+guarantee $6$-competitiveness in this case: this is clear by
+noting that increasing the serial works of all tasks by a factor
+of $2$ would double the best attainable awake time.
+
+Now we show why THRESH is $3$-competitive.
+Consider OPT's strategy.
+Let $\tau_{i_0}$ be the task with the largest serial work that
+OPT schedules in serial. Recalling that the tasks are sorted by
+serial work, for all $i < i_0$ we have that OPT chooses to
+schedule $\tau_i$ in parallel. Let $w^{OPT}_\sigma = \sum_{i \ge
+i_0} \sigma(\tau_i), w^{OPT}_\pi = \sum_{i < i_0} \pi(\tau_i)$.
+OPT's awake time is obviously at least $(w^{OPT}_\pi +
+w^{OPT}_\sigma)/p$. OPT's awake time is also obviously at least
+$\sigma(\tau_{i_0})$.
 
 
+Think about the sequential thing.
+Ignore $\sigma(\tau_{i_*})$. Then $\rho_i$ always has less work
+than all the other processors. Of course in reality $\rho_1$ has
+the most work of any processor.
+So we have that all processors have serial work at most 
+$$\sum_{i > i_*} \sigma(\tau_i)/p + \sigma(\tau_{i_*}).$$
+Add on to that $$\sum_{i \le i_*} \pi(\tau_i)/p.$$
+
+Um, if $THRESH \le a + b$, and $OPT \ge a, OPT \ge b$, then it
+sounds like $THRESH \le 2 OPT$, i.e. we're $2$-competitive. I
+honestly wasn't even sure we were $3$-competitive, looks like
+$2$. \textbf{Check this in the morning, I'm tired.}
+
+}
