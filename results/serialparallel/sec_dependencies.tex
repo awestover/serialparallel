@@ -1,4 +1,61 @@
 \section{Dependencies}
 \label{sec:dependencies}
 
+\subsection{Unknown Dependencies}
+We now give an on-line scheduling algorithm in
+Algorithm~\ref{alg:chunk}, which we call \defn{CHUNK}, that is
+$O(\sqrt{p})$-competitive with the optimal off-line scheduling
+algorithm for the problem where there are unknown dependencies
+among the tasks.
+Recalling the $\Omega(\sqrt{p})$ lower bound on such an
+algorithm's competitive ratio, we have that our scheduler is
+asymptotically optimal in this situation.
+
+\begin{algorithm}
+  \caption{CHUNK}
+  \label{alg:chunk}
+  \begin{algorithmic}
+    \State $P_i \gets \{\rho_{i\sqrt{p}}, \rho_{i\sqrt{p}+1}, \ldots, \rho_{(i+1)\sqrt{p}-1}\}$ for $i \in [\sqrt{p}/2]$
+    \State
+    \Comment Group $\rho_j$'s into chunks $P_i$ of $\sqrt{p}$ processors
+    \State $A = \{P_1,P_2, \ldots, P_{\sqrt{p}/2} \} $
+    \State $B = \{\rho_{\sqrt{p}/2 + 1},\rho_{\sqrt{p}/2 + 2}, \ldots, \rho_{\sqrt{p}} \} $
+
+    \If{There is an unscheduled task $\tau$}
+      \If{$\pi(\tau) \le \sqrt{p} \cdot \sigma(\tau)$}
+        \State Schedule $\tau$ in parallel, distributing work equally, on whichever chunk in $A$ has the least work
+      \Else
+        \State Schedule $\tau$ in serial on whichever processor in $B$ has the least work
+      \EndIf
+    \EndIf
+  \end{algorithmic}
+\end{algorithm}
+
+We will show that CHUNK with $p$ processors is $O(1)$-competitive
+with OPT on $\sqrt{p}/2$ processors, which we refer to as
+\defn{SmallOPT}.
+
+{\color{red}
+Call a time step \enquote{super productive} if either: all of processors in A are working or all of processors in B are working.
+CHUNK's total amount of super productive time is constant competitive with OPT's total amount of time.
+So we can just focus on time steps that aren't super productive for CHUNK. 
+But in those time steps, every single job that's present is
+running, and it's running at a speed so that the total time it
+takes will be competitive with the total time that the same job
+runs for in OPT.
+So it seems like (and this is still a sketchy argument that I
+don't have ironed out, and may be wrong) we should be
+constant-competitive with SmallOPT.
+}
+
+SmallOPT is $O(\sqrt{p})$-competitive with OPT since SmallOPT
+could just use $\sqrt{p}$ steps to simulate a step of OPT. Thus,
+because CHUNK is constant-competitive with SmallOPT, CHUNK is
+$O(\sqrt{p})$-competitive with OPT. 
+
+\subsection{Known Dependencies}
+We might hope to do better if we have more data; the lower bound
+construction is heavily dependent on the structure of the
+dependencies being invisible.
+
 
