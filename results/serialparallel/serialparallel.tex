@@ -27,11 +27,11 @@
 \DeclareMathOperator{\Var}{\text{Var}}
 \DeclareMathOperator{\img}{Img}
 \DeclareMathOperator{\polylog}{\text{polylog}}
+\DeclareMathOperator{\oracle}{\text{ORACLE}}
 \newcommand{\defeq}{\vcentcolon=}
 \newcommand{\eqdef}{=\vcentcolon}
 
 \DeclareMathOperator{\work}{\text{work}}
-\newcommand{\PR}[1]{\text{PR}( #1 )}
 
 \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
 \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
@@ -91,11 +91,12 @@ competitive ratio at least $1.0625$ with high probability.
 We also consider a generalization of the scheduling problem where
 tasks can have dependencies. Here we show XXX.
 \end{abstract}
+\fancypagestyle{plain} % page number on right
 
 \input{sec_intro.tex}
 \input{sec_onlineReduction.tex}
 \input{sec_lowerbounds.tex}
-\input{sec_recursion.tex}
+\input{sec_dependencies.tex}
 
 \bibliographystyle{plain}
 \bibliography{paper}
