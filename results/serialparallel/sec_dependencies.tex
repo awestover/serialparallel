@@ -15,18 +15,30 @@ asymptotically optimal in this situation.
   \caption{CHUNK}
   \label{alg:chunk}
   \begin{algorithmic}
-    \State $P_i \gets \{\rho_{i\sqrt{p}}, \rho_{i\sqrt{p}+1}, \ldots, \rho_{(i+1)\sqrt{p}-1}\}$ for $i \in [\sqrt{p}/2]$
+    \State $P_i \gets \bigcup_{j=(i-1)\sqrt{p}/2+1}^{i\sqrt{p}/2} \{\rho_j\}$ for $i \in [\sqrt{p}/2+1]$
     \State
-    \Comment Group $\rho_j$'s into chunks $P_i$ of $\sqrt{p}$ processors
+    \Comment Group $\rho_j$'s into chunks $P_i$ of $\sqrt{p}/2$ processors
     \State $A = \{P_1,P_2, \ldots, P_{\sqrt{p}/2} \} $
-    \State $B = \{\rho_{\sqrt{p}/2 + 1},\rho_{\sqrt{p}/2 + 2}, \ldots, \rho_{\sqrt{p}} \} $
+    \State $B = P_{\sqrt{p}/2 + 1}$
+    \State $A$-verge-time: time where no chunks in $A$ are doing work
+    \State $B$-verge-time: time where no processors in $B$ are doing work
 
-    \If{There is an unscheduled task $\tau$}
-      \If{$\pi(\tau) \le \sqrt{p} \cdot \sigma(\tau)$}
-        \State Schedule $\tau$ in parallel, distributing work equally, on whichever chunk in $A$ has the least work
-      \Else
-        \State Schedule $\tau$ in serial on whichever processor in $B$ has the least work
-      \EndIf
+    \State Let $\mathcal{T}$ be the set of arrived tasks that haven't been started yet.
+    \If{time is $A$-verge-time}
+    \State Let $\mathcal{T}_A = \{ \tau \in \mathcal{T} | \pi(\tau) < \sqrt{p}/2 \cdot \sigma(\tau) \}.$
+      \State For each $\tau \in \mathcal{T}_A$, let $\tau'$ be
+      \defn{chunked} $\tau$, a task that must run in serial that
+      has work $\pi(\tau)/(\sqrt{p}/2)$.
+      \State Schedule the chunked tasks $\{\tau' | \tau \in
+      \mathcal{T}_A\}$ each on a single chunk in $A$, scheduling with
+      sequential bin packing (on sorted tasks), which is
+      constant-competitive with what OPT would do.
+    \EndIf
+    \If{time is $B$-verge-time}
+      \State Let $\mathcal{T}_B = \{ \tau\in \mathcal{T}  | \pi(\tau) \ge \sqrt{p}/2 \cdot \sigma(\tau) \}.$
+      \State Schedule the tasks $\mathcal{T}_B$ on a processor in
+      $B$, scheduling with sequential bin packing (on sorted
+      tasks), which is constant-competitive with what OPT would do.
     \EndIf
   \end{algorithmic}
 \end{algorithm}
@@ -35,27 +47,53 @@ We will show that CHUNK with $p$ processors is $O(1)$-competitive
 with OPT on $\sqrt{p}/2$ processors, which we refer to as
 \defn{SmallOPT}.
 
-{\color{red}
-Call a time step \enquote{super productive} if either: all of processors in A are working or all of processors in B are working.
-CHUNK's total amount of super productive time is constant competitive with OPT's total amount of time.
-So we can just focus on time steps that aren't super productive for CHUNK. 
-But in those time steps, every single job that's present is
-running, and it's running at a speed so that the total time it
-takes will be competitive with the total time that the same job
-runs for in OPT.
-So it seems like (and this is still a sketchy argument that I
-don't have ironed out, and may be wrong) we should be
-constant-competitive with SmallOPT.
-}
+We now claim that the awake time of CHUNK is constant-competitive
+with the awake time of SmallOPT. We define the \defn{CHUNK-$X$
+awake time}, for $X=A,B$, to be the amount of time that $X$ has
+unfinished tasks; we will show that CHUNK-$X$ awake time is
+constant-competitive with SmallOPT's awake time for $X=A,B$.
+
+First consider $X=B$. Recall that $B$ gets tasks with cost ratio
+at least $\sqrt{p}/2$. SmallOPT must run these tasks in serial,
+and CHUNK chooses to run these tasks in serial as well (on a
+processor in $B$). Without loss of generality we restrict to
+considering TAPs that consist only of tasks with cost ratio at
+least $\sqrt{p}/2$; considering TAPs with other tasks increases
+SmallOPT's awake time without affecting the CHUNK-$B$ awake time.
+By Theorem~\ref{thm:constant_competitive} and the analysis of
+bin-packing we have that the CHUNK-$B$ awake time is
+$O(1)$-competitive with SmallOPT's awake time.
+
+Now consider $X=A$. Recall that $A$ gets tasks with cost ratio
+less than $\sqrt{p}/2$. SmallOPT can run these tasks in serial or
+in parallel. CHUNK runs these tasks in parallel on a single
+chunk. For a task $\tau$, the time it takes to run on a single
+chunk is $\pi(\tau)/(\sqrt{p}/2) < \sigma(\tau)$. Without loss of
+generality we restrict to considering TAPs that consist only of
+tasks with cost ratio less than $\sqrt{p}/2$; considering TAPs
+with other tasks increases SmallOPT's awake time without
+affecting the CHUNK-$A$ awake time. We can augment SmallOPT by
+considering any task run in parallel by SmallOPT to just be the
+work on a processor assigned the most of its work. Then its
+serial vs serial, and by Theorem~\ref{thm:constant_competitive}
+and the analysis of bin-packing we have that the CHUNK-$A$ awake
+time is $O(1)$-competitive with SmallOPT's awake time.
+
+But of course CHUNK's awake time is at most the sum of CHUNK-$A$
+awake time and CHUNK-$B$ awake time. So CHUNK's awake time is
+constant-competitive with SmallOPT's awake time.
 
 SmallOPT is $O(\sqrt{p})$-competitive with OPT since SmallOPT
-could just use $\sqrt{p}$ steps to simulate a step of OPT. Thus,
+could just use $2\sqrt{p}$ steps to simulate a step of OPT. Thus,
 because CHUNK is constant-competitive with SmallOPT, CHUNK is
 $O(\sqrt{p})$-competitive with OPT. 
 
 \subsection{Known Dependencies}
-We might hope to do better if we have more data; the lower bound
-construction is heavily dependent on the structure of the
-dependencies being invisible.
+Now we consider the off-line version of the dependency version of
+the scheduling problem. In particular, in this version of the
+problem the scheduler has full knowledge of all the specs of all
+the tasks and all the dependencies.
 
+We give an algorithm to constant-approximate the optimal off-line
+scheduler in reasonable running time.
 
