@@ -3,7 +3,7 @@
 
 \subsection{Unknown Dependencies}
 We now give an on-line scheduling algorithm in
-Algorithm~\ref{alg:chunk}, which we call \defn{CHUNK}, that is
+Algorithm~\ref{alg:aug}, which we call \defn{AUG}, that is
 $O(\sqrt{p})$-competitive with the optimal off-line scheduling
 algorithm for the problem where there are unknown dependencies
 among the tasks.
@@ -12,80 +12,78 @@ algorithm's competitive ratio, we have that our scheduler is
 asymptotically optimal in this situation.
 
 \begin{algorithm}
-  \caption{CHUNK}
-  \label{alg:chunk}
+  \caption{AUG}
+  \label{alg:aug}
   \begin{algorithmic}
-    \State $P_i \gets \bigcup_{j=(i-1)\sqrt{p}/2+1}^{i\sqrt{p}/2} \{\rho_j\}$ for $i \in [\sqrt{p}/2+1]$
+    \State $A = \{\rho_1, \rho_2, \ldots, \rho_{p/2} \}$
+    \State $B = \{\rho_{1+p/2}, \rho_{2+p/2}, \ldots, \rho_{p} \}$
     \State
-    \Comment Group $\rho_j$'s into chunks $P_i$ of $\sqrt{p}/2$ processors
-    \State $A = \{P_1,P_2, \ldots, P_{\sqrt{p}/2} \} $
-    \State $B = P_{\sqrt{p}/2 + 1}$
-    \State $A$-verge-time: time where no chunks in $A$ are doing work
-    \State $B$-verge-time: time where no processors in $B$ are doing work
+    \State $\mathcal{T} \gets$ arrived tasks that haven't been scheduled yet
+    \State $\mathcal{T}_A \gets \{ \tau \in \mathcal{T} | \pi(\tau) \le \sqrt{p} \cdot \sigma(\tau) \}.$
+    \State $\mathcal{T}_B \gets \{ \tau\in \mathcal{T}  | \pi(\tau) > \sqrt{p} \cdot \sigma(\tau) \}.$
+    \State
+    
+    \If{$B$ has no tasks running}
+      \State Sequentially greedily schedule all tasks $\tau \in \mathcal{T}_B$ on processors in $B$
+    \EndIf
+    \State Schedule all tasks $\tau \in \mathcal{T}_A$ in parallel on all processors in $A$
 
-    \State Let $\mathcal{T}$ be the set of arrived tasks that haven't been started yet.
-    \If{time is $A$-verge-time}
-    \State Let $\mathcal{T}_A = \{ \tau \in \mathcal{T} | \pi(\tau) < \sqrt{p}/2 \cdot \sigma(\tau) \}.$
-      \State For each $\tau \in \mathcal{T}_A$, let $\tau'$ be
-      \defn{chunked} $\tau$, a task that must run in serial that
-      has work $\pi(\tau)/(\sqrt{p}/2)$.
-      \State Schedule the chunked tasks $\{\tau' | \tau \in
-      \mathcal{T}_A\}$ each on a single chunk in $A$, scheduling with
-      sequential bin packing (on sorted tasks), which is
-      constant-competitive with what OPT would do.
-    \EndIf
-    \If{time is $B$-verge-time}
-      \State Let $\mathcal{T}_B = \{ \tau\in \mathcal{T}  | \pi(\tau) \ge \sqrt{p}/2 \cdot \sigma(\tau) \}.$
-      \State Schedule the tasks $\mathcal{T}_B$ on a processor in
-      $B$, scheduling with sequential bin packing (on sorted
-      tasks), which is constant-competitive with what OPT would do.
-    \EndIf
   \end{algorithmic}
 \end{algorithm}
 
-We will show that CHUNK with $p$ processors is $O(1)$-competitive
-with OPT on $\sqrt{p}/2$ processors, which we refer to as
-\defn{SmallOPT}.
-
-We now claim that the awake time of CHUNK is constant-competitive
-with the awake time of SmallOPT. We define the \defn{CHUNK-$X$
+We will show that AUG with $p$ processors is $O(1)$-competitive
+with OPT on $\sqrt{p}$ processors, which we refer to as
+\defn{SmallOPT}. We define the \defn{AUG-$X$
 awake time}, for $X=A,B$, to be the amount of time that $X$ has
-unfinished tasks; we will show that CHUNK-$X$ awake time is
+unfinished tasks; we will show that AUG-$X$ awake time is
 constant-competitive with SmallOPT's awake time for $X=A,B$.
 
-First consider $X=B$. Recall that $B$ gets tasks with cost ratio
-at least $\sqrt{p}/2$. SmallOPT must run these tasks in serial,
-and CHUNK chooses to run these tasks in serial as well (on a
-processor in $B$). Without loss of generality we restrict to
-considering TAPs that consist only of tasks with cost ratio at
-least $\sqrt{p}/2$; considering TAPs with other tasks increases
-SmallOPT's awake time without affecting the CHUNK-$B$ awake time.
-By Theorem~\ref{thm:constant_competitive} and the analysis of
-bin-packing we have that the CHUNK-$B$ awake time is
-$O(1)$-competitive with SmallOPT's awake time.
+First consider $X=A$. Recall that $A$ gets tasks with cost ratio
+at most $\sqrt{p}$. SmallOPT can run these tasks in serial or in
+parallel. AUG runs these tasks in parallel on all processors in
+$A$. For a task $\tau$, the time it takes AUG to run the task is
+$\pi(\tau)/(p/2) < \sigma(\tau)/ (\sqrt{p}/2)$. The AUG-$A$ awake
+time is 
+$$\sum_{\tau \in \mathcal{T}_A} \frac{\pi(\tau)}{p/2} \le \sum_{\tau \in \mathcal{T}_A} \frac{\sigma(\tau)}{\sqrt{p}/2}$$
+where $\mathcal{T}_A$ denotes the set of tasks with cost ratio at most $\sqrt{p}$.
+On the other hand, the awake time of SmallOPT is trivially at least 
+$$\sum_{\tau} \frac{\sigma(\tau)}{\sqrt{p}}.$$
+So AUG-$A$ awake time is constant-competitive with SmallOPT's awake time.
 
-Now consider $X=A$. Recall that $A$ gets tasks with cost ratio
-less than $\sqrt{p}/2$. SmallOPT can run these tasks in serial or
-in parallel. CHUNK runs these tasks in parallel on a single
-chunk. For a task $\tau$, the time it takes to run on a single
-chunk is $\pi(\tau)/(\sqrt{p}/2) < \sigma(\tau)$. Without loss of
-generality we restrict to considering TAPs that consist only of
-tasks with cost ratio less than $\sqrt{p}/2$; considering TAPs
-with other tasks increases SmallOPT's awake time without
-affecting the CHUNK-$A$ awake time. We can augment SmallOPT by
-considering any task run in parallel by SmallOPT to just be the
-work on a processor assigned the most of its work. Then its
-serial vs serial, and by Theorem~\ref{thm:constant_competitive}
-and the analysis of bin-packing we have that the CHUNK-$A$ awake
-time is $O(1)$-competitive with SmallOPT's awake time.
+Now consider $X=B$. Recall that $B$ gets tasks with cost ratio
+larger than $\sqrt{p}$. SmallOPT must run these tasks in serial,
+and CHUNK chooses to run these tasks in serial as well, in
+particular on processors in $B$. Without loss of generality we
+restrict to considering DTAPs that consist only of tasks with
+cost ratio larger than least $\sqrt{p}$; considering DTAPs with
+other tasks increases SmallOPT's awake time without affecting
+CHUNK-$B$ awake time. We claim that by scheduling tasks greedily
+in batches AUG-$B$ awake time is $4$-competitive with SmallOPT's
+awake time. We define a \defn{$B$ start time} to be a time when
+$B$ has no work and there are tasks that have already arrived
+with cost ratio larger than $\sqrt{p}$ that $B$ is about to
+schedule. We define a \defn{$B$ finish time} to be a time when
+$B$ finishes a batch of tasks. Note that $B$ finish times and $B$
+start times certainly can coincide. Let $T_t^{start}$ denote the
+difference between the $t$-th finish time and the $t$-th start
+time, i.e. the amount of time that greedy bin-packing takes to
+process the $t$-th batch of tasks. Let $T_t^{during}$ denote the
+amount of time that greedy bin-packing takes to process the tasks
+that arrived between the $t$-th start time and the $t$-th finish
+time. Clearly AUG-$B$ awake time is at most 
+$$\sum_{t} \left(T_t^{start} + T_t^{during}\right).$$
+On the other hand, greedy bin-packing is $2$-competitive with OPT
+for serial batches, so SmallOPT's awake time is at least 
+$$\sum_{t} \max(T_t^{start}/2, T_t^{during}/2).$$
+Hence AUG-$B$ awake time is $4$-competitive with SmallOPT's awake time.
 
-But of course CHUNK's awake time is at most the sum of CHUNK-$A$
-awake time and CHUNK-$B$ awake time. So CHUNK's awake time is
+But of course AUG's awake time is at most the sum of AUG-$A$
+awake time and AUG-$B$ awake time. So AUG's awake time is
 constant-competitive with SmallOPT's awake time.
 
-SmallOPT is $O(\sqrt{p})$-competitive with OPT since SmallOPT
-could just use $2\sqrt{p}$ steps to simulate a step of OPT. Thus,
-because CHUNK is constant-competitive with SmallOPT, CHUNK is
+SmallOPT is $(\sqrt{p})$-competitive with OPT since SmallOPT
+could just use $\sqrt{p}$ steps to simulate a step of OPT. Thus,
+because AUG is constant-competitive with SmallOPT, AUG is
 $O(\sqrt{p})$-competitive with OPT. 
 
 \subsection{Known Dependencies}
