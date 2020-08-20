@@ -1,4 +1,4 @@
-\section{An Algorithm for Optimizing Awake Time} 
+\section{Minimizing Awake Time on TAPs} 
 \label{sec:awaketime}
 In this section we give a simple deterministic scheduling
 algorithm --- that does not use preemption --- for minimizing
@@ -29,11 +29,9 @@ We propose Algorithm~\ref{alg:bat}, which we call \defn{BAT}
   \label{alg:bat}
   \begin{algorithmic}
     \State Let $\oracle_R$ be an algorithm that is $R$-competitive with FROST 
-    \While{True}
-      \If{verge time}
-        \State schedule tasks as directed by $\oracle_R$
-      \EndIf
-    \EndWhile
+    \If{verge time}
+      \State schedule tasks as directed by $\oracle_R$
+    \EndIf
   \end{algorithmic}
 \end{algorithm}
 
@@ -59,18 +57,18 @@ corresponds to FROST while $\oracle_2$ corresponds to THRESH.
 
 Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
 times for $\mathcal{T}$; note that $\ell \le n$ which in
-particular is finite. Let $t_i$ be the $i$-th time that is a
-verge time, let $q_i$ be the number of ready tasks for BAT at
-time $t_i$. Let $T^{ALG}(q_1, \ldots, q_{\ell'})$ denote the
-awake time of a scheduling algorithm ALG on the truncation of the
-TAP $\mathcal{T}$ that only consists of tasks arriving at times
-before $t_{\ell'}$.
+particular is finite. Let $t_i$ be the $i$-th verge time, and
+define $t_0$ (not a verge time) to be $-\infty$ for convenience.
+Let $T^{ALG}(a, b)$ denote the awake time of a scheduling algorithm
+ALG on the truncation of the TAP $\mathcal{T}$ that only consists
+of tasks arriving at times in $(a, b]$.
 
-By definition of $\oracle_R$ we have that $\oracle_R$ is
-$R$-competitive with OPT on single-time-TAPs, i.e.
+Note that all tasks that arrive at times in $(t_0, t_1]$ arrive
+at time $t_1$. By definition of $\oracle_R$ we have that
+$\oracle_R$ is $R$-competitive with OPT on single-time-TAPs, i.e.
 \begin{equation}
   \label{eq:same_single}
-  T^{BAT}(q) \le R \cdot T^{OPT}(q).
+  T^{BAT}(t_0,t_1) \le R \cdot T^{OPT}(t_0,t_1).
 \end{equation}
 
 An \defn{ALG-gap} is an interval of time $I$ of non-zero length where for
@@ -108,27 +106,21 @@ Part of the reason for this is the following fact:
   competitive ratio $r$ on arbitrary TAPs.
 \end{claim}
 \begin{proof}
-  We partition the tasks based on arrival time, splitting the
-  tasks on the ALG-gaps. That is, we split the tasks into groups
-  so that two tasks $\tau_i, \tau_j$ are in the same group if and
-  only if there are no ALG-gaps in between the arrival times of
-  $\tau_i$ and $\tau_j$.
-  We can define an interval of time $I_i$ for each of these
-  ALG-gap-free subsets of the TAP, where $I_i$ is defined so that
-  all tasks in the $i$-th group start and finish at times
-  contained in the interval $I_i$.
-
-  Let $T_{I_i}^{OPT}$ and $T_{I_i}^{ALG}$ denote the awake time
-  of OPT and ALG on interval $I_i$. Because $I_i$ contains no
-  ALG-gaps we have $T^{ALG} = \sum_{i} T^{ALG}_{I_i}$.
-  Further, recall that by Claim~\ref{clm:OPT_finishes_first} any
-  ALG-gap is also an OPT-gap, so
-  $T^{OPT} = \sum_{i} T_{I_i}^{OPT}$. 
-  Hence from our assumption that ALG is $r$-competitive on
-  gap-free TAPs, such as the subset of the TAP on the interval
-  $I_i$, we have $T_{I_i}^{ALG} \le r\cdot T_{I_i}^{OPT}$ for
-  all $i$. Summing we get $T^{ALG} \le r\cdot T^{OPT}$, as desired.
-  
+  We define an equivalence relation $\tau_i \sim \tau_j$ to mean
+  that no ALG-gap separates $\tau_i,\tau_j$. $\sim$ partitions
+  the tasks into sets $I_1, \ldots, I_m$. Let
+  $s(I_k)=\min_{\tau\in I_k}(t(\tau)), f(I_k)= \max_{\tau\in
+  I_k}(t(\tau)).$ We clearly have 
+  $$T^{ALG}(t_1, t_n) = \sum_{k=1}^m T^{ALG}(s(I_k), f(I_k)).$$
+  By Claim~\ref{clm:OPT_finishes_first}, ALG-gaps are subsets of OPT-gaps.
+  Hence, we also have 
+  $$T^{OPT}(t_1, t_n) = \sum_{k=1}^m T^{OPT}(s(I_k), f(I_k)).$$
+  On the truncation of the TAP to a gap-free set of tasks ALG is
+  $r$-competitive with OPT by assumption, so we have
+  $$T_{I_k}^{ALG}(s(I_k), f(I_k)) \le r\cdot
+  T_{I_k}^{OPT}(s(I_k), f(I_k)).$$
+  Summing this, we get $$T^{ALG}(t_1, t_n) \le r\cdot T^{OPT}(t_1,
+  t_n),$$ as desired.
 \end{proof}
 
 By Claim~\ref{clm:just_consider_gapless}, in order to bound BAT's
@@ -148,29 +140,34 @@ BAT's competitive ratio on an OPT-gap-free TAP.
   BAT is $(R+1)$-competitive on OPT-gap-free TAPs.
 \end{proposition}
 \begin{proof}
-  For an OPT-gap-free TAP we must have
+  For an OPT-gap-free TAP (which is of course also a BAT-gap-free
+  TAP) we must have
   \begin{equation}
     \label{eq:opt_isnt_so_much_better}
-    T^{OPT}(q_1, \ldots, q_{\ell}) \ge T^{BAT}(q_1, \ldots, q_{\ell-1}).
+    T^{OPT}(t_1, t_n) \ge t_{n-1} - t_1 = T^{BAT}(t_1, t_{n-1}),
   \end{equation}
+  because some tasks arrive at time $t_1$, and some tasks arrive
+  after $t_{n-1}$, so for both BAT and OPT to have no gaps their
+  awake times must satisfy the specified constraints.
+
   Because BAT finishes all $q_{i}$ tasks that arrive at time $t_i$
   by time $t_{i+1}$ we can actually always decompose
-  $T^{BAT}(q_1, \ldots, q_\ell)$ as 
+  $T^{BAT}(t_1, t_n)$ as 
   \begin{equation}
     \label{eq:decomposeBAT}
-    T^{BAT}(q_1, \ldots, q_\ell) = \sum_{i=1}^\ell T^{BAT}(q_i).
+    T^{BAT}(t_1, t_n) = \sum_{i=1}^n T^{BAT}(t_{i-1}, t_i).
   \end{equation}
   By Equation~\eqref{eq:decomposeBAT}, and
   Equation~\eqref{eq:same_single} we thus have 
   \begin{equation}
     \label{eq:decompose_rearanged}
-    T^{BAT}(q_1, \ldots, q_\ell) \le T^{BAT}(q_1, \ldots, q_{\ell-1}) + R \cdot T^{OPT}(q_\ell).
+    T^{BAT}(t_1, t_n) \le T^{BAT}(t_1, t_{n-1}) + R \cdot T^{OPT}(t_{n-1}, t_n).
   \end{equation}
 
   Hence by Equation~\eqref{eq:opt_isnt_so_much_better} and
   Equation~\eqref{eq:decompose_rearanged} we have
   \begin{align*}
-    T^{BAT}(q_1, \ldots, q_\ell) &\le T^{OPT}(q_1, \ldots, q_\ell) + R\cdot T^{OPT}(q_\ell)\\
+    T^{BAT}(t_1, t_n) &\le T^{OPT}(t_1, t_n) + R\cdot T^{OPT}(t_{n-1}, t_n)\\
                                  &\le (R+1)T^{OPT}(q_1, \ldots, q_\ell),
   \end{align*}
   as desired.
@@ -180,25 +177,58 @@ BAT's competitive ratio on an OPT-gap-free TAP.
   \label{thm:constant_competitive}
   BAT is $(R+1)$-competitive.
 \end{theorem}
+
+{\color{red}
+  Bill's proof of this:
+
+  Let an OPT-batch be a maximal set of tasks done by OPT. Let a
+  BAT-batch be one of BAT's batches. Call a BAT-batch
+  \defn{internal} if it is a subset of an OPT-batch. Call a
+  BAT-batch \defn{external} if it is not a subset of an
+  OPT-batch. 
+
+  Consider an OPT-batch $x$. Let $B_1$ be the union of the
+  internal BAT-batches contained in $x$, let $B_2$ be the
+  BAT-batch that overlaps with the end of $x$ (if such a batch
+  exists), and let $B_3$ be the first BAT-batch that starts after
+  $x$. Let $T_1$ be the time since the start of $x$ to the start
+  of $B_2$ and let $T_2$ be the time from the start of $B_2$
+  until the end of $x$. The amount of time that OPT spends on
+  tasks from $x$ is clearly $T_1+T_2$. Now we bound how much time
+  BAT spends on tasks from $x$. $B_1$ takes time $T_1$. $B_3$
+  spends time at most $RT_2$ on tasks from $x$. $B_2$ spends time
+  at most $R(T_1 + T_2)$ on tasks from $x$. Adding these times up
+  we get that BAT spends at most $2R(T_1+T_2)$ time on the tasks
+  from $x$. Adding this up across all OPT-batches $x$, gives that
+  BAT is $2R$-competitive, as desired.
+
+}
+
 \begin{proof}
+  By Claim~\ref{clm:just_consider_gapless} without loss of
+  generality we consider TAPs without ALG-gaps.
+
   The proof is by strong induction on the number of OPT-gaps. 
   The base case of our induction is established in
   Proposition~\ref{prop:no_optgaps}, which says that if there are $0$
   OPT-gaps then BAT is $2$-competitive. 
 
-  Consider a TAP that has more than $0$ OPT gaps;
-  say that its first OPT-gap starts at time $t_*$.
-  Let $j$ be the largest index such that verge time $t_j < t_*$.
+  Consider a TAP that has more than $k > 0$ OPT gaps, assume that
+  for any TAP with fewer than $k$ OPT gaps BAT is $2$-competitive
+  with OPT.
+
+  Let the first OPT-gap of the TAP start at time $t_*$.
+  Let $j$ be an index such that $t_j < t_* < t_{j+1}$.
 
   Using our inductive hypothesis we have:
   \begin{align*}
-  &T^{OPT}(q_1, \ldots, q_\ell) \\
-  &\ge T^{OPT}(q_1, \ldots, q_j) + T^{OPT}(q_{j+1}, \ldots, q_{\ell})\\
-  &\ge \frac{1}{R+1}\paren{T^{BAT}(q_1, \ldots, q_j) + T^{BAT}(q_{j+1}, \ldots, q_{\ell})}\\
+  &T^{OPT}(t_1, t_n) \\
+  &= T^{OPT}(t_1, t_*) + T^{OPT}(t_*, t_n)\\
+  &\ge \frac{1}{R+1}\paren{T^{BAT}(t_1, t_*) + T^{BAT}(t_*, t_n)}\\
   &=\frac{1}{R+1} T^{BAT}(q_1, \ldots, q_\ell).
   \end{align*}
 
-  Rearanging we get the desired bound:
+  Rearranging we get the desired bound:
   $$T^{BAT}(q_1, \ldots, q_\ell) \le (R+1) T^{OPT}(q_1, \ldots, q_\ell).$$
 \end{proof}
 
@@ -275,11 +305,23 @@ awake time the same as that of OPT.
   is at least that of FROST.
 \end{proof}
 
-We now consider how to
-more efficiently compute the best schedule for the case where all
-tasks arrive at the start. In fact, we consider making an
-algorithm to get a constant approximation of this, which will
-still give an algorithm with constant competitive ratio.
+We remark that it is straightforward to extend FROST to a full
+oracle for OPT. In particular, a full OPT oracle can be
+constructed as follows. First, perform a brute force search over every
+possible subset of the tasks to be the set of tasks scheduled in
+parallel, and do a brute force search over every way to assign
+the serial tasks to processors. Now consider the gaps, i.e. times
+when all processors are idle under this current schedule. Add the
+parallel tasks, scheduling them so as not to decrease the size of
+any gaps unless it is impossible to do otherwise, in which case
+the parallel tasks should be added to make all processors have
+equal amounts of work extending into what used to be a gap.
+
+We now consider how to more efficiently compute the best schedule
+for the case where all tasks arrive at the start. In fact, we
+consider making an algorithm to get a constant approximation of
+this, which will still give an algorithm with constant
+competitive ratio.
 
 We propose Algorithm~\ref{alg:thresh}, which we call THRESH, as a
 simple way to $2$-approximate FROST.
@@ -314,9 +356,8 @@ simple way to $2$-approximate FROST.
     \State Schedule tasks $\tau_1, \ldots, \tau_{i_*}$ in
     parallel, distributing their work equally among the
     processors.
-    \State $j \gets 0$
     \For{$k \in \{i_* + 1, \ldots, n\} $}
-    \State Schedule $\tau_{k}$ in serial on processor $\rho_{1+(j \bmod p)}$
+    \State Schedule $\tau_{k}$ in serial on processor $\rho_{1+(k \bmod p)}$
     \EndFor
   \end{algorithmic}
 \end{algorithm}
@@ -369,6 +410,11 @@ OPT's awake time is obviously at least $(w^{OPT}_\pi +
 w^{OPT}_\sigma)/p$. OPT's awake time is also obviously at least
 $\sigma(\tau_{i_0})$.
 
+Without loss of generality we call the processor that gets the
+most work, which used to be called $\rho_{1+(i_* \bmod p)}$,
+$\rho_1$; in particular we circularly shift the labels of the
+processors so that the work that $\rho_i$ gets is larger than the
+work that $\rho_j$ gets for any $j > i$.
 Think about the sequential thing.
 Ignore $\sigma(\tau_{i_*})$. Then $\rho_i$ always has less work
 than all the other processors. Of course in reality $\rho_1$ has
@@ -379,4 +425,198 @@ Add on to that $$\sum_{i \le i_*} \pi(\tau_i)/p.$$
 
 If $x \le a + b$, and $y \ge a, y \ge b$, then obviously $x \le
 2y$. Thus, THRESH is $2$-competitive with FROST. 
+
+Now we give an algorithm that is $3$-competitive with FROST,
+which \emph{does not use the size of the parallel implementations
+of tasks}. We present this algorithm in
+Algorithm~\ref{alg:justrunit}, which we call \defn{JUSTRUNIT}.
+
+\begin{algorithm}
+  \caption{JUSTRUNIT}
+  \label{alg:justrunit}
+  \begin{algorithmic}
+    \State \textbf{Input: } a list of tasks $\tau_1, \tau_2,
+    \ldots, \tau_n$, sorted in descending order by
+    $\sigma(\tau_i).$
+    \State \textbf{Output: } a schedule that is $3$-competitive
+    with the schedule FROST would make
+    \State 
+    \State $w_\pi \gets 0$
+    \State $i \gets 1$
+    \While{$i \le n$}
+      \If{$w_\pi > \sigma(\tau_i)$}
+        \State \textbf{break}
+      \EndIf
+      \State Run task $\tau_i$ in parallel
+      \State $w_\pi \gets w_\pi + \pi(\tau_i)/p$
+      \State $i \gets i+1$
+    \EndWhile
+    \While{$i \le n$}
+      \State Schedule $\tau_i$ in serial on $\rho_{1+(i \bmod p)}$
+      \State $i \gets i+1$
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+We remark on the very interesting property of JUSTRUNIT: it does
+not need to know $\pi(\tau_i)$ until after running $\tau_i$ in
+parallel, in which case it could of course have measured
+$\pi(\tau_i)$. JUSTRUNIT results in a strategy very similar to
+that given by THRESH. It differs slightly though, which results
+in the slightly worse competitive-ratio of $3$ versus FROST. 
+
+Next we prove several impossibility results, which show that we
+cannot hope to substantially improve our algorithms.
+
+\subsection{Lower Bound on Deterministic Algorithms for Minimizing Awake Time}
+We can specify a TAP in a table with a list of which tasks arrive
+at each time; we use the compact notation $(\sigma, \pi)\times m$
+to denote $m$ identical tasks with serial works $\sigma$ and
+parallel works $\pi$. It is clear that BAT is not
+$(2-\epsilon)$-competitive for any $\epsilon > 0$; consider, for
+example the TAP given in Table~\ref{tab:2minusEps}, on which BAT
+achieves awake time $2$ and OPT achieves awake time
+$1+\varepsilon$.
+
+\begin{table}[H]
+\caption{}
+\label{tab:2minusEps}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+time & tasks                    \\ \hline
+$0$  & $(1,p) \times p/2$       \\ \hline
+$\varepsilon$  & $(1, p) \times p/2$ \\ \hline
+\end{tabular}
+\end{table}
+
+We might hope to achieve a $(1+\epsilon)$-competitive scheduling
+algorithm for this problem, which would arguably be much better
+than BAT. However, in this subsection we
+establish that it is impossible for an off-line deterministic
+scheduler to get a competitive ratio lower than $1.25$, even
+using preemption. That is, we show that for any deterministic
+algorithm ALG there is some input on which ALG has awake time at
+least $1.25$ times greater than OPT. 
+
+In Table~\ref{tab:lowerboundFork1} and
+Table~\ref{tab:lowerboundFork2} we specify two TAPs.
+
+\begin{table}[H]
+\caption{}
+\label{tab:lowerboundFork1}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+time & tasks                    \\ \hline
+$0$  & $(4, 2p) \times 1$       \\ \hline
+$1$  & $(3, 3p) \times (p-1)$ \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\caption{}
+\label{tab:lowerboundFork2}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+time & tasks                    \\ \hline
+$0$  & $(4, 2p) \times 1$       \\ \hline
+\end{tabular}
+\end{table}
+
+Consider an arbitrary deterministic scheduling algorithm. If at
+time $0$ the arriving tasks are $(4, 2p)\times 1$ (i.e. a single
+task arrives, with serial work $4$ and parallel work $2p$) then
+the scheduler has two options: it can schedule this task in
+serial, or in parallel.
+
+If no further tasks arrive, i.e. the task schedule is from
+Table~\ref{tab:lowerboundFork2} then OPT would have awake time
+$2$ by distributing the tasks work equally amongst all
+processors, whereas a scheduler that ran the task in serial for
+all of the time that it was running the task during the first
+second after the task arrived would have awake time at least $3$.
+In this case the competitive ratio of the algorithm is at least $1.5$.
+
+On the other hand, the algorithm could decide to not run the task
+in serial for any time during the first second after the task
+arrives. In this case, if
+and it turns out that the task schedule is from
+Table~\ref{tab:lowerboundFork1}, then the algorithm has again
+acted sub-optimally. In particular, for the schedule given in
+Table~\ref{tab:lowerboundFork1}, OPT schedules the task that
+arrives at time $0$ in serial, and then schedules all the tasks
+that arrive at time $1$ in serial as well, and hence achieves
+awake time $4$. On the other hand, the awake time of an algorithm
+that did not schedule the task that arrived at time $0$ in
+serial is at least $5$: such a scheduler may either choose at
+time $1$ to cancel the task from time $0$ and run it in serial,
+or the scheduler may choose to let the parallel implementation
+finish running. In this case the competitive ratio of the
+algorithm is $5/4$.
+
+Hence it is impossible for any deterministic algorithm to achieve
+a competitive ratio of lower than $1.25$.
+
+We remark that the numbers in this argument can clearly be
+optimized, to give an improved lower bound of about $1.36$ on
+competitive ratio. As this is asymptotically not interesting, and
+much messier, we decide to not give this better argument.
+
+\subsection{Lower Bound against Randomized Algorithms}
+We might that there is a randomized algorithm that gets a
+competitive ratio substantially better than any deterministic
+algorithm can, for example maybe there is a randomized algorithm
+that is $(1+\epsilon)$-competitive on any input with high
+probability, or a randomized algorithm with expected competitive
+ratio at most $(1+\epsilon)$ on any input. However, in this
+subsection we show that this is impossible.
+
+In particular, we demonstrate a lower-bound of $1.0625$ on the
+competitive ratio of any randomized off-line algorithm.
+
+Recall the TAPs from Table~\ref{tab:lowerboundFork1} and
+Table~\ref{tab:lowerboundFork2}; we will use these as sub-parts
+of our the TAP that we build to be adversarial for a randomized
+algorithm. 
+
+Fix some off-line randomized algorithm RAND. We say that an input
+TAP is \defn{bad} for RAND if with high probability RAND's awake
+time on TAP is at least $1.0625$ times that of OPT.
+We construct a class of TAPs, and show that some of the TAPs in
+this class must be bad for RAND.
+
+Let $\mathcal{T}_{I}$, for some some binary string $I$, be the
+TAP consisting of the TAP from Table~\ref{tab:lowerboundFork1} at
+time $10i$ if $I_i = 1$ and the TAP from
+Table~\ref{tab:lowerboundFork2} if $I_i = 0$. 
+
+Consider a $I$ chosen uniformly at random from $\{0,1\}^m$ for
+some parameter $m$.
+On each sub-tap RAND has at most a $1/2$ chance of acting as OPT
+does, and at least a $1/2$ chance of acting sub-optimally, in
+particular, from our analysis above showing that any deterministic
+algorithm has competitive ratio at least $1.25$ on at least one
+of these inputs, RAND has at least a $1/2$ chance of this
+happening.
+By a Chernoff Bound, with probability at least
+$1-e^{-\Omega(m)}$, on at least $1/4$ of the sub-taps RAND has
+competitive ratio at least $1.25$. Since there is no overlap, by
+design, of the sub-taps (by spacing them out), this means that
+overall the competitive ratio of RAND is at least $1\cdot 3/4 +
+1.25 \cdot 1/4 = 1.0625.$
+
+Note that the number of tasks in such a TAP is less than $mp$, so
+$n \le mp$, and thus $m \ge n/p$.
+Hence our result that holds with high probability in $m$ holds
+with high probability in $n/p$ too.
+Of course $n\gg p$ so this is pretty decent.
+
+Because a randomly chosen TAP from this class of TAPs is bad for
+RAND with high probability in $n/p$, by the probabilistic method
+there is at least one TAP in this class of TAPs that is bad for
+RAND. 
+
+
 

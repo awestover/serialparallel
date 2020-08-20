@@ -1,0 +1,52 @@
+\section{Minimizing Mean Response Time}
+\label{sec:meanresponsetime}
+
+In this section we consider a metric very different from awake
+time: mean response time. 
+
+\subsection{Preemption is necessary for Minimizing Mean Response Time}
+
+In this paper we consider the metric of awake time. Another
+possible metric is mean response time. In this subsection we
+briefly demonstrate a major difference between the problem of
+minimizing mean response time and minimizing awake time:
+Preemption is necessary for Minimizing Mean Response Time.
+
+Consider a deterministic scheduling algorithm ALG that does not
+use preemption. Say that the $\max$ number of processors given
+work over all input TAPs is $p_0$. We claim that there is some
+input TAP on which ALG does arbitrarily poorly compared to OPT in
+terms of mean response time.
+Consider a sequence of tasks that forces ALG to have $p_0$
+processors in use, and let $h_0$ be the minimum amount of work on
+any processor with work. Say we have sent $n_0$ tasks so far.
+We choose $n$ such that $n_0 = \epsilon n$, and now we send
+$(1-\epsilon)n$ tasks each with work $h_0/2$. OPT is presumably
+going to be preempting stuff to run these, so our competitive
+ratio is basically $\Theta(n)$, which is in particular trash.
+
+
+\subsection{Single-Processor}
+For a single-processor minimizing awake time is trivial: any
+strategy that always schedules a task when there are tasks and
+the processor is idle achieves minimal awake time. The sizes of
+the tasks do not matter at all.
+On the other hand, the single-processor case is already
+non-trivial for mean response time.
+
+We propose the following algorithm, which we call
+$\text{SEER}$ for
+the problem: if processor idle and there are tasks: schedule
+smallest task. Else: if new task arrives, predict the
+awake time for preemption or not, and do whichever looks better.
+
+\begin{clm}
+  This is OPT, or at least constant-competitive with OPT.
+\end{clm}
+
+\subsection{Multiprocessor-Processor}
+Now its harder. But we do basically the same thing. Just it's
+harder, especially hard to do it efficiently.
+
+
+

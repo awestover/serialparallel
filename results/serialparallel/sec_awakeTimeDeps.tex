@@ -1,7 +1,50 @@
-\section{Dependencies}
-\label{sec:dependencies}
+\section{Minimizing Awake Time on DTAPs} 
+\label{sec:awaketimeDeps}
 
-\subsection{Unknown Dependencies}
+\subsection{Off-line $\Omega(\sqrt{p})$ Lower Bound}
+In the unknown dependencies it is impossible to get an
+$O(1)$-competitive algorithm with the optimal algorithm that
+knows the dependencies.
+In particular, we give a DTAP with $n=p$ tasks, that can be
+processed in time $O(1)$ by an algorithm that knows the
+dependencies, but that takes time
+$\Omega(\sqrt{n})$ to be processed in the worst
+case by any deterministic algorithm that does not know the
+dependencies.
+In fact, we can show any deterministic or randomized algorithm
+takes time $\Omega(\sqrt{n})$ to process this DTAP with high
+probability in $n$.
+
+We now construct and analyze the DTAP. We will make $n=p$ tasks.
+The DTAP consists of $\sqrt{p}$ \defn{levels}. On each level of
+the DTAP the tasks are $(1,\sqrt{p})\times \sqrt{p}$. One of
+these tasks spawns the $\sqrt{p}$ tasks at the next level of
+recursion upon completion.
+
+A scheduler that knew the dependencies would first run all the
+spawning tasks using their parallel implementations. Doing so the
+emptier could unlock all the tasks in time $\sqrt{p} \sqrt{p} / p
+= 1$. Then there are less than $p$ tasks, so the scheduler can
+schedule them all with their serial implementations, and finishes
+$1$ unit of time later. In total this gives awake time $2$.
+But if the scheduler does not know which are the spawning tasks,
+then it can't immediately do them. In the worst case such a
+scheduler will take $1$ unit of time to uncover the dependencies:
+if the scheduler runs any task in serial it could take $1$ unit
+of time, and if all tasks are run in parallel it could take
+$\sqrt{p}\sqrt{p} / p = 1$ unit of time.
+Taking $1$ unit of time on each of the $\sqrt{p}$ levels means
+that this scheduler has awake time at least $\sqrt{p} = \sqrt{n}$.
+
+By doing tasks in parallel until the spawning task is uncovered a
+randomized emptier can hope to do slightly better. But it turns
+out not better asymptotically.
+With high probability in $n$ the scheduler takes time at least
+$1/2$ on at least $1/4$ of the levels.
+Hence the scheduler takes time at least $1/8 \sqrt{n}$ with high
+probability in $n$, as desired.
+
+\subsection{Off-line $O(\sqrt{p})$-competitive algorithm}
 We now give an on-line scheduling algorithm in
 Algorithm~\ref{alg:aug}, which we call \defn{AUG}, that is
 $O(\sqrt{p})$-competitive with the optimal off-line scheduling
@@ -64,7 +107,9 @@ $B$ has no work and there are tasks that have already arrived
 with cost ratio larger than $\sqrt{p}$ that $B$ is about to
 schedule. We define a \defn{$B$ finish time} to be a time when
 $B$ finishes a batch of tasks. Note that $B$ finish times and $B$
-start times certainly can coincide. Let $T_t^{start}$ denote the
+start times certainly can coincide. 
+{\color{red} % this next part is baloney
+Let $T_t^{start}$ denote the
 difference between the $t$-th finish time and the $t$-th start
 time, i.e. the amount of time that greedy bin-packing takes to
 process the $t$-th batch of tasks. Let $T_t^{during}$ denote the
@@ -76,6 +121,7 @@ On the other hand, greedy bin-packing is $2$-competitive with OPT
 for serial batches, so SmallOPT's awake time is at least 
 $$\sum_{t} \max(T_t^{start}/2, T_t^{during}/2).$$
 Hence AUG-$B$ awake time is $4$-competitive with SmallOPT's awake time.
+}
 
 But of course AUG's awake time is at most the sum of AUG-$A$
 awake time and AUG-$B$ awake time. So AUG's awake time is
@@ -86,7 +132,7 @@ could just use $\sqrt{p}$ steps to simulate a step of OPT. Thus,
 because AUG is constant-competitive with SmallOPT, AUG is
 $O(\sqrt{p})$-competitive with OPT. 
 
-\subsection{Known Dependencies}
+\subsection{On-line Scheduler}
 Now we consider the off-line version of the dependency version of
 the scheduling problem. In particular, in this version of the
 problem the scheduler has full knowledge of all the specs of all

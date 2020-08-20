@@ -30,7 +30,6 @@
 \DeclareMathOperator{\oracle}{\text{ORACLE}}
 \newcommand{\defeq}{\vcentcolon=}
 \newcommand{\eqdef}{=\vcentcolon}
-
 \DeclareMathOperator{\work}{\text{work}}
 
 \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
@@ -49,6 +48,7 @@
 \newtheorem{remark}{Remark}
 \newtheorem{proposition}{Proposition}
 \newtheorem{claim}{Claim}
+\newtheorem{clm}{Claim}
 \newtheorem{conjecture}{Conjecture}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
@@ -68,35 +68,50 @@ tasks with serial and parallel implementations that have
 potentially different costs. The scheduler can choose whether to
 run each task in serial or in parallel, and aims to either
 minimize total awake time, i.e. the amount of time that the
-scheduler has unfinished tasks. 
+scheduler has unfinished tasks, or average response time. 
 
-We show that, very surprisingly, the off-line problem can
-essentially be reduced to the case where all tasks are available
-from the start, a setting in which the off-line and on-line
-algorithms are of course the same. In particular, we give a
-simple deterministic $2$-competitive off-line scheduling
-algorithm, that does not even need to use preemption! The
-$2$-competitive algorithm relies on solving a special case of the
-off-line problem where all tasks arrive at the same time. We give
-a $2$-approximation algorithm for the single-arrival-time
-off-line problem with running time $O(n)$, assuming the tasks are pre-sorted.
+We show that, the off-line problem can essentially be reduced to
+the case where all tasks are available from the start, a setting
+in which the off-line and on-line algorithms are of course the
+same. In particular, we give a simple deterministic
+$2$-competitive off-line scheduling algorithm, that does not even
+need to use preemption! The $2$-competitive algorithm relies on
+solving a special case of the off-line problem where all tasks
+arrive at the same time. We give an exact solution to the
+off-line problem, but it has running time $\Omega(p^n)$. We also
+give a $2$-approximation algorithm for the single-arrival-time
+off-line problem with running time $O(n)$, assuming the tasks are
+pre-sorted. This yields a $4$-competitive algorithm for the
+on-line problem. Further, we prove that there is no deterministic
+algorithm that gets competitive ratio better than $1.36$ on all
+TAPs, and in fact, even with randomization we show that there is
+always some input on which the algorithm achieves competitive
+ratio at least $1.0625$ with high probability.
 
-We also prove several impossibility results.
-We show that no deterministic scheduler can have a
-competitive ratio smaller than $1.25$ in general.
-Even with randomization, we show that for any randomized
-algorithm there is some input on which the algorithm achieves
-competitive ratio at least $1.0625$ with high probability.
+Next we consider a generalization of the scheduling problem where
+tasks can have dependencies. Here we give a lower bound of
+$\Omega(\sqrt{p})$ against an on-line algorithm's performance.
+Further, we give an on-line algorithm that is
+$O(\sqrt{p})$-competitive. We also consider making an algorithm
+for the on-line problem. {\color{red}We give an
+inefficient algorithm to exactly compute OPT, and give a good
+approximation algorithm.}
 
-We also consider a generalization of the scheduling problem where
-tasks can have dependencies. Here we show XXX.
+We also consider the problem of minimizing mean response time.
+This problem is fundamentally different from the problem of
+minimizing awake time: for example, preemption is crucial in an
+algorithm for minimizing response time, and the single-processor
+version of the minimum-awake-time problem is already non-trivial.
+{\color{red}We give good algorithms for this problem.}
+
 \end{abstract}
 \fancypagestyle{plain} % page number on right
 
 \input{sec_intro.tex}
-\input{sec_onlineReduction.tex}
-\input{sec_lowerbounds.tex}
-\input{sec_dependencies.tex}
+\input{sec_awakeTime.tex}
+\input{sec_awakeTimeDeps.tex}
+\input{sec_meanResponseTime.tex}
+\input{sec_meanResponseTimeDeps.tex}
 
 \bibliographystyle{plain}
 \bibliography{paper}
