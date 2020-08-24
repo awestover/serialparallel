@@ -1,188 +1,62 @@
 \section{Minimizing Awake Time on TAPs} 
 \label{sec:awaketime}
-In this section we give a simple deterministic scheduling
-algorithm --- that does not use preemption --- for minimizing
-awake time. We show that our algorithm is $2$-competitive
-with OPT on all TAPs. Our algorithm is theoretically interesting,
-but not efficient. We also give an efficient algorithm for
-$2$-approximating our algorithm.
+In this section we show that the on-line scheduling problem can
+essentially be reduced to the off-line \defn{single-arrival-time}
+case of the problem: the case where all tasks arrive at the
+start. In particular, we give an extremely simple deterministic
+scheduling algorithm, that in particular does not use preemption,
+for minimizing awake time, that makes use of an algorithm for the
+batch case of the off-line problem. If we use an algorithm that
+is $R$-competitive with OPT in the off-line batch case in our
+algorithm, then we get an on-line algorithm that is
+$2R$-competitive with OPT. We give an inefficient algorithm that
+accomplishes $R=1$, and several more interesting and efficient
+algorithms with larger values of $R$.
 
-Note that without loss of generality we may consider TAPs where
-the cost ratio $\pi(\tau)/\sigma(\tau) \in [1,p]$ for all tasks
-$\tau$; if $\pi(\tau)/\sigma(\tau) < 1$ then the scheduler
-clearly should never run $\tau$ in serial so we can replace the
-serial implementation with the parallel implementation to get
-cost ratio $1$, similarly, if $\pi(\tau)/\sigma(\tau) > p$ then
-the scheduler should never run $\tau$ in parallel and we can
-replace the parallel implementation with the serial
-implementation to get cost ratio $p$.
+\subsection{On-line Reduction to Off-line}
+A \defn{single-time TAP} is a TAP where all tasks arrive at the
+same time. In this subsection we show that algorithms that are
+$R$-competitive with OPT on single-time TAPs can be used to make
+an on-line algorithm that is $2R$-competitive with OPT.
 
-We say that a time is a \defn{verge} time for our algorithm if at
-this time no processors have work assigned to them, and there is at
-least one ready task.
+Without loss of generality we consider TAPs where the cost ratio
+$\pi(\tau)/\sigma(\tau) \in [1,p]$ for all tasks $\tau$; if
+$\pi(\tau)/\sigma(\tau) < 1$ then the scheduler clearly should
+never run $\tau$ in serial so we can replace the serial
+implementation with the parallel implementation to get cost ratio
+$1$, similarly, if $\pi(\tau)/\sigma(\tau) > p$ then the
+scheduler should never run $\tau$ in parallel and we can replace
+the parallel implementation with the serial implementation to get
+cost ratio $p$.
 
-We propose Algorithm~\ref{alg:bat}, which we call \defn{BAT}
-(BAT is short for \enquote{batch}), as a scheduling algorithm.
+A \defn{verge} time for our algorithm is a time where no
+processors have work assigned to them, and there is at least one
+ready task. We propose Algorithm~\ref{alg:bat}, which we call
+\defn{$\bat_R$} (BAT is short for \enquote{batch}), as a
+scheduling algorithm for the on-line problem. In this subsection
+we analyze the competitive-ratio of $\bat_R$ assuming the
+existence of an algorithm for $\oracle_R$; in
+Subsection~\ref{subsec:offlineawaketime} we show that $\oracle_R$
+can be computed, and in fact can be efficiently computed for $R \ge 2$.
 
 \begin{algorithm}
-  \caption{BAT}
+  \caption{$\bat_R$}
   \label{alg:bat}
   \begin{algorithmic}
-    \State Let $\oracle_R$ be an algorithm that is $R$-competitive with FROST 
+    \State Let $\oracle_R$ be an algorithm that is $R$-competitive with OPT on single-time TAPs 
     \If{verge time}
       \State schedule tasks as directed by $\oracle_R$
     \EndIf
   \end{algorithmic}
 \end{algorithm}
 
-A \defn{single-time-TAP} is a TAP where all tasks arrive at a
-single time. FROST is an algorithm that yields a schedule
-achieving minimal awake time, i.e. the same awake time as OPT, on
-single-time-TAPs. In Lemma~\ref{lem:frosting} we establish that
-Algorithm~\ref{alg:frost} implements FROST, hence showing
-that BAT can actually be computed. Algorithm~\ref{alg:frost}
-exactly computes FROST, but is very slow. We also give an
-algorithm THRESH in Algorithm~\ref{alg:thresh} for
-$2$-approximating FROST in linear time. We remark that it is not
-obvious that an oracle for OPT can be computed in finite time,
-even in this special case: there are an uncountably infinite
-number of possible scheduling strategies that OPT can choose
-from. Nevertheless, we show how to consider a finite search space
-that a search can actually be performed on, at least in the
-special case of single-time-TAPs. Before considering FROST, and
-approximations to FROST, we analyze the competitive ratio of BAT
-assuming that we have $\oracle_R$, an algorithm that is
-$R$-competitive with FROST for some $R \le O(1)$; $\oracle_1$
-corresponds to FROST while $\oracle_2$ corresponds to THRESH.
-
-Consider a TAP $\mathcal{T}$. Let $\ell$ be the number of verge
-times for $\mathcal{T}$; note that $\ell \le n$ which in
-particular is finite. Let $t_i$ be the $i$-th verge time, and
-define $t_0$ (not a verge time) to be $-\infty$ for convenience.
-Let $T^{ALG}(a, b)$ denote the awake time of a scheduling algorithm
-ALG on the truncation of the TAP $\mathcal{T}$ that only consists
-of tasks arriving at times in $(a, b]$.
-
-Note that all tasks that arrive at times in $(t_0, t_1]$ arrive
-at time $t_1$. By definition of $\oracle_R$ we have that
-$\oracle_R$ is $R$-competitive with OPT on single-time-TAPs, i.e.
-\begin{equation}
-  \label{eq:same_single}
-  T^{BAT}(t_0,t_1) \le R \cdot T^{OPT}(t_0,t_1).
-\end{equation}
-
-An \defn{ALG-gap} is an interval of time $I$ of non-zero length where for
-all times in the interior of $I$ ALG has completed every
-task that has arrived thus far. Additionally, for an interval to
-be an ALG-gap the interval must contain no other intervals which
-are also ALG-gaps (i.e. it is a \enquote{maximal} interval
-satisfying our conditions).
-We say that a TAP is \defn{ALG-gap-free} if it contains no ALG-gaps.
-
-Now we prove an obvious property of OPT.
-\begin{claim}
-  \label{clm:OPT_finishes_first}
-  If there is a scheduling algorithm ALG that completes all tasks by
-  time $t_*$ then OPT finishes all tasks by time $t_*$.
-\end{claim}
-\begin{proof}
-  Say that ALG completes all tasks by time $t_*$. Let $t_0 < t_*$
-  be the most recent time that OPT has completed all tasks that
-  arrive before time $t_0$. If OPT has not finished all tasks by
-  time $t_*$ then it was acting sub-optimally, as it could steal
-  the strategy that ALG used on $[t_0, t_*]$ to achieve lower
-  awake time. In particular, for any tasks that arrive in $[t_0,
-  t_*]$ OPT could schedule them as ALG schedules them. 
-\end{proof}
-As an immediate consequence of Claim~\ref{clm:OPT_finishes_first}
-we have that any ALG-gap is a subset of an OPT-gap.
-
-Decomposing TAPs into gap-free subsets of the TAP is very useful.
-Part of the reason for this is the following fact:
-\begin{claim}
-  \label{clm:just_consider_gapless}
-  If an algorithm ALG achieves competitive ratio $r$ on
-  ALG-gap-free TAPs, then ALG achieves 
-  competitive ratio $r$ on arbitrary TAPs.
-\end{claim}
-\begin{proof}
-  We define an equivalence relation $\tau_i \sim \tau_j$ to mean
-  that no ALG-gap separates $\tau_i,\tau_j$. $\sim$ partitions
-  the tasks into sets $I_1, \ldots, I_m$. Let
-  $s(I_k)=\min_{\tau\in I_k}(t(\tau)), f(I_k)= \max_{\tau\in
-  I_k}(t(\tau)).$ We clearly have 
-  $$T^{ALG}(t_1, t_n) = \sum_{k=1}^m T^{ALG}(s(I_k), f(I_k)).$$
-  By Claim~\ref{clm:OPT_finishes_first}, ALG-gaps are subsets of OPT-gaps.
-  Hence, we also have 
-  $$T^{OPT}(t_1, t_n) = \sum_{k=1}^m T^{OPT}(s(I_k), f(I_k)).$$
-  On the truncation of the TAP to a gap-free set of tasks ALG is
-  $r$-competitive with OPT by assumption, so we have
-  $$T_{I_k}^{ALG}(s(I_k), f(I_k)) \le r\cdot
-  T_{I_k}^{OPT}(s(I_k), f(I_k)).$$
-  Summing this, we get $$T^{ALG}(t_1, t_n) \le r\cdot T^{OPT}(t_1,
-  t_n),$$ as desired.
-\end{proof}
-
-By Claim~\ref{clm:just_consider_gapless}, in order to bound BAT's
-competitive ratio, it suffices to consider TAPs
-without BAT-gaps. Note however that a TAP without
-BAT-gaps could still have OPT-gaps.
-
-We conclude our analysis of the competitive ratio of BAT in
-Theorem~\ref{thm:constant_competitive} with an inductive argument on
-the number of OPT-gaps in the TAP.
-First we establish the base case for the argument in
-Proposition~\ref{prop:no_optgaps}: we consider
-BAT's competitive ratio on an OPT-gap-free TAP.  
-
-\begin{proposition}
-  \label{prop:no_optgaps}
-  BAT is $(R+1)$-competitive on OPT-gap-free TAPs.
-\end{proposition}
-\begin{proof}
-  For an OPT-gap-free TAP (which is of course also a BAT-gap-free
-  TAP) we must have
-  \begin{equation}
-    \label{eq:opt_isnt_so_much_better}
-    T^{OPT}(t_1, t_n) \ge t_{n-1} - t_1 = T^{BAT}(t_1, t_{n-1}),
-  \end{equation}
-  because some tasks arrive at time $t_1$, and some tasks arrive
-  after $t_{n-1}$, so for both BAT and OPT to have no gaps their
-  awake times must satisfy the specified constraints.
-
-  Because BAT finishes all $q_{i}$ tasks that arrive at time $t_i$
-  by time $t_{i+1}$ we can actually always decompose
-  $T^{BAT}(t_1, t_n)$ as 
-  \begin{equation}
-    \label{eq:decomposeBAT}
-    T^{BAT}(t_1, t_n) = \sum_{i=1}^n T^{BAT}(t_{i-1}, t_i).
-  \end{equation}
-  By Equation~\eqref{eq:decomposeBAT}, and
-  Equation~\eqref{eq:same_single} we thus have 
-  \begin{equation}
-    \label{eq:decompose_rearanged}
-    T^{BAT}(t_1, t_n) \le T^{BAT}(t_1, t_{n-1}) + R \cdot T^{OPT}(t_{n-1}, t_n).
-  \end{equation}
-
-  Hence by Equation~\eqref{eq:opt_isnt_so_much_better} and
-  Equation~\eqref{eq:decompose_rearanged} we have
-  \begin{align*}
-    T^{BAT}(t_1, t_n) &\le T^{OPT}(t_1, t_n) + R\cdot T^{OPT}(t_{n-1}, t_n)\\
-                                 &\le (R+1)T^{OPT}(q_1, \ldots, q_\ell),
-  \end{align*}
-  as desired.
-\end{proof}
-
 \begin{theorem}
   \label{thm:constant_competitive}
-  BAT is $(R+1)$-competitive.
+  $\bat_R$ is $2R$-competitive.
 \end{theorem}
-
-{\color{red}
-  Bill's proof of this:
-
-  Let an OPT-batch be a maximal set of tasks done by OPT. Let a
-  BAT-batch be one of BAT's batches. Call a BAT-batch
+\begin{proof}
+  Let an \defn{OPT-batch} be a maximal set of tasks done by OPT.
+  Let a \defn{BAT-batch} be one of $\bat_R$'s batches. Call a BAT-batch
   \defn{internal} if it is a subset of an OPT-batch. Call a
   BAT-batch \defn{external} if it is not a subset of an
   OPT-batch. 
@@ -201,39 +75,15 @@ BAT's competitive ratio on an OPT-gap-free TAP.
   we get that BAT spends at most $2R(T_1+T_2)$ time on the tasks
   from $x$. Adding this up across all OPT-batches $x$, gives that
   BAT is $2R$-competitive, as desired.
-
-}
-
-\begin{proof}
-  By Claim~\ref{clm:just_consider_gapless} without loss of
-  generality we consider TAPs without ALG-gaps.
-
-  The proof is by strong induction on the number of OPT-gaps. 
-  The base case of our induction is established in
-  Proposition~\ref{prop:no_optgaps}, which says that if there are $0$
-  OPT-gaps then BAT is $2$-competitive. 
-
-  Consider a TAP that has more than $k > 0$ OPT gaps, assume that
-  for any TAP with fewer than $k$ OPT gaps BAT is $2$-competitive
-  with OPT.
-
-  Let the first OPT-gap of the TAP start at time $t_*$.
-  Let $j$ be an index such that $t_j < t_* < t_{j+1}$.
-
-  Using our inductive hypothesis we have:
-  \begin{align*}
-  &T^{OPT}(t_1, t_n) \\
-  &= T^{OPT}(t_1, t_*) + T^{OPT}(t_*, t_n)\\
-  &\ge \frac{1}{R+1}\paren{T^{BAT}(t_1, t_*) + T^{BAT}(t_*, t_n)}\\
-  &=\frac{1}{R+1} T^{BAT}(q_1, \ldots, q_\ell).
-  \end{align*}
-
-  Rearranging we get the desired bound:
-  $$T^{BAT}(q_1, \ldots, q_\ell) \le (R+1) T^{OPT}(q_1, \ldots, q_\ell).$$
 \end{proof}
 
-Now we analyze Algorithm~\ref{alg:frost}, which we call
-FROST, or $\oracle_1$. 
+\subsection{Off-line Approximation Algorithms}
+\label{subsec:offlineawaketime}
+In this Subsection we present algorithms for $\oracle_R$ for
+various values of $R$.
+
+First we give Algorithm~\ref{alg:frost}, which we call
+FROST, for $\oracle_1$. 
 
 \begin{algorithm}
   \caption{FROST (i.e. $\oracle_1$)}
@@ -273,33 +123,32 @@ FROST, or $\oracle_1$.
   \end{algorithmic}
 \end{algorithm}
 
-The key insight to decrease the search space to be finite is to
-notice that for any method of distributing whichever tasks are
-chosen to run in serial, the parallel tasks may as well be
-redistributed afterwords, so long as doing so either results in
-not increasing the awake time, or results in all tasks having
-identical amounts of work.
-We can thus do a brute-force search over all the ways to assign some
+We remark that it is not obvious that an oracle for OPT can be
+computed in finite time, even in the single-arrival-time case:
+there are an uncountably infinite number of possible scheduling
+strategies that OPT can choose from. The key insight to decrease
+the search space to be finite is to notice that for any method of
+distributing whichever tasks are chosen to run in serial, the
+parallel tasks may as well be redistributed afterwords, so long
+as doing so either results in not increasing the awake time, or
+results in all tasks having identical amounts of work. We can
+thus do a brute-force search over all the ways to assign some
 tasks to run in serial and to run on specific processors, and
-then put the parallel tasks on top \enquote{like frosting on a cake}. 
+then put the parallel tasks on top \enquote{like frosting on a
+cake}. We remark that the running time of FROST for $n$ tasks is
+$\Theta(p^n)$, which is extremely large. Nevertheless the
+existence of the algorithm is interesting. 
 
-We remark that the running time of FROST for $n$ tasks is 
-larger than $\Omega(p^n)$, which is extremely large. Nevertheless the
-existence of the algorithm is interesting. Later we give an
-algorithm for $\oracle_2$ that has much more reasonable running
-time.
-
-We now prove that FROST actually does compute a schedule with
-awake time the same as that of OPT.
+Now we prove that FROST is $1$-competitive with OPT.
 \begin{lemma}[Frosting Lemma]
   \label{lem:frosting} 
-  FROST is an oracle for OPT on TAPs where all tasks arrive at a single time.
+  FROST is an oracle for OPT on single-time TAPs.
 \end{lemma}
 \begin{proof}
   Consider the configuration that OPT chooses. FROST considers
   a configuration of tasks with the same assignment of serial
-  tasks at some point, because FROST brute force searches
-  through all of these. For this configuration it is clearly
+  tasks at some point, because FROST brute force searches through
+  all such configurations. For this configuration it is clearly
   impossible to achieve lower awake time than by spreading the
   parallel tasks in the frosting method, hence OPT's awake time
   is at least that of FROST.
@@ -307,24 +156,25 @@ awake time the same as that of OPT.
 
 We remark that it is straightforward to extend FROST to a full
 oracle for OPT. In particular, a full OPT oracle can be
-constructed as follows. First, perform a brute force search over every
+constructed as follows: 
+
+\begin{enumerate}
+  \item Perform a brute force search over every
 possible subset of the tasks to be the set of tasks scheduled in
 parallel, and do a brute force search over every way to assign
-the serial tasks to processors. Now consider the gaps, i.e. times
+the serial tasks to processors. 
+
+\item Now consider the gaps, i.e. times
 when all processors are idle under this current schedule. Add the
 parallel tasks, scheduling them so as not to decrease the size of
 any gaps unless it is impossible to do otherwise, in which case
 the parallel tasks should be added to make all processors have
 equal amounts of work extending into what used to be a gap.
+\end{enumerate}
 
-We now consider how to more efficiently compute the best schedule
-for the case where all tasks arrive at the start. In fact, we
-consider making an algorithm to get a constant approximation of
-this, which will still give an algorithm with constant
-competitive ratio.
-
-We propose Algorithm~\ref{alg:thresh}, which we call THRESH, as a
-simple way to $2$-approximate FROST.
+We now consider how to efficiently approximate OPT on
+single-time TAPs. We propose Algorithm~\ref{alg:thresh}, which we
+call THRESH, as a simple way to $2$-approximate OPT.
 
 \begin{algorithm}
   \caption{THRESH}
@@ -362,52 +212,29 @@ simple way to $2$-approximate FROST.
   \end{algorithmic}
 \end{algorithm}
 
-Put simply THRESH schedules the $i_*$ tasks with largest serial
-work in parallel, distributing their work equally, and schedules
-the rest of the tasks in serial, sequentially giving out the
-tasks, for the optimal value of $i_*$.
+THRESH schedules the $i_*$ tasks with largest serial work in
+parallel, distributing their work equally, and schedules the rest
+of the tasks in serial, sequentially giving out the tasks, for
+the optimal value of $i_*$. Clearly THRESH only requires space
+$\Theta(1)$ beyond the input to implement, and has running time
+$\Theta(n)$, given that the input is pre-sorted.
+We remark that a nice feature of THRESH is that it schedules
+parallel tasks on a constant number of processors; we allow OPT
+to schedule tasks on a variable number of processors (i.e.
+unevenly distribute the work of a parallel task). It is nice to
+not need to be able to unevenly distribute parallel tasks.
 
-Clearly THRESH requires space $\Theta(1)$ beyond the input to
-implement, and has running time $\Theta(n)$, given that the input
-is pre-sorted.
-
-In order to remove the assumption that the input is pre-sorted,
-we can sort the tasks at the start of the algorithm, using heap
-sort or radix sort. If we simply use heap sort then we clearly
-will have running time $\Theta(n \log n)$ but still have $O(1)$
-space requirement, and have competitive ratio $2$ with FROST.
-On the other hand, if we use radix sort, it is conceivable that
-we could do better. First, if the tasks can be assumed to have
-serial works that can only take on $2^{O(1)}$ possible values,
-then the radix sort can be performed in linear time, in-place,
-resulting in a $2$-competitive algorithm that uses $O(1)$ memory
-and $O(n)$ time. On the other hand, if such an assumption cannot
-be made, then if better running time is still desired, then it
-can be achieved at a cost to the competitive-ratio. Let $1$ be
-the largest serial work of any task. If we sort the tasks based
-on the key of which bucket $[1/2^i, 1/2^{i-1}]$ the task's
-serial work falls in, except saying
-that any tasks with work less than $1/2^{\lg (np)}$ fall in the
-same bucket, then there are only $\log n + \log p$ distinct keys,
-so sorting can be done much faster. If we are willing to spend
-$\Theta(n + \log (np))$ space, then the sorting can be done by
-counting sort in time $\Theta(n+\log(np))$. On the other hand,
-using radix sort we could do the sort in time $\Theta(n \log
-(np))$ using only $\Theta(1)$ auxiliary space. 
-Since the tasks are only approximately sorted we can only
-guarantee $4$-competitiveness in this case: this is clear by
-noting that increasing the serial works of all tasks by a factor
-of $2$ would double the best attainable awake time.
-
-Now we show why THRESH is $2$-competitive.
-Consider OPT's strategy.
+\begin{proposition}
+THRESH is $2$-competitive with OPT on single-time TAPs.
+\end{proposition}
+\begin{proof}
 Let $\tau_{i_0}$ be the task with the largest serial work that
 OPT schedules in serial. Recalling that the tasks are sorted by
 serial work, for all $i < i_0$ we have that OPT chooses to
-schedule $\tau_i$ in parallel. Let $w^{OPT}_\sigma = \sum_{i \ge
-i_0} \sigma(\tau_i), w^{OPT}_\pi = \sum_{i < i_0} \pi(\tau_i)$.
-OPT's awake time is obviously at least $(w^{OPT}_\pi +
-w^{OPT}_\sigma)/p$. OPT's awake time is also obviously at least
+schedule $\tau_i$ in parallel. Let $$w^{OPT}_\sigma = \sum_{i \ge
+i_0} \sigma(\tau_i), w^{OPT}_\pi = \sum_{i < i_0} \pi(\tau_i).$$
+OPT's awake time is obviously at least $$(w^{OPT}_\pi +
+w^{OPT}_\sigma)/p.$$ OPT's awake time is also obviously at least
 $\sigma(\tau_{i_0})$.
 
 Without loss of generality we call the processor that gets the
@@ -425,20 +252,77 @@ Add on to that $$\sum_{i \le i_*} \pi(\tau_i)/p.$$
 
 If $x \le a + b$, and $y \ge a, y \ge b$, then obviously $x \le
 2y$. Thus, THRESH is $2$-competitive with FROST. 
+\end{proof}
 
-Now we give an algorithm that is $3$-competitive with FROST,
-which \emph{does not use the size of the parallel implementations
-of tasks}. We present this algorithm in
-Algorithm~\ref{alg:justrunit}, which we call \defn{JUSTRUNIT}.
+The assumption that the input is pre-sorted might not be
+reasonable. If the tasks are not pre-sorted, then we must (at
+least approximately) sort them for our algorithm to achieve a
+good competitive-ratio. We now discuss several approaches for
+doing this sorting which will involve trade-offs in competitive
+ratio, running time, and space.
+
+If we simply use heap sort to sort the tasks, then we
+will have increased running time of $\Theta(n \log n)$, but will
+retain our constant-space requirement and will still have
+competitive ratio $2$.
+
+If we use radix sort then we can possibly achieve better
+running time. 
+
+If the tasks can be assumed to
+have serial works that can only take on $O(1)$ possible
+values, then the radix sort can be performed in-place in linear
+time, which results in a linear-time $2$-competitive algorithm. 
+
+If the serial works can take on more than $\Omega(1)$ possible
+values, we can still achieve better than linearithmic running
+time by sacrificing competitive ratio. Let $1$ be the largest
+serial work of any task. We sort the tasks based on which bucket
+$[1/2^i, 1/2^{i-1}]$ the task's serial work falls in, --- i.e.
+rounding their serial works ---  except putting tasks with work
+less than $1/2^{\lg (np)}$ in a single bucket. Now there are only
+$\log (np)$ distinct keys, so sorting can be done faster. 
+
+If we are willing to spend $\Theta(n + \log (np))$
+extra space, counting sort can sort the tasks (based on the
+rounded keys) in time $\Theta(n+\log(np))$. 
+If we want to still only use $O(1)$ space, then by
+sequentially partitioning on each bit of the key's ranks we get
+an in-place algorithm with running time $O(n \log \log (np))$.
+
+Since the tasks are only approximately sorted we cannot
+guarantee competitive ratio $2$ with this method. However, we can
+guarantee that we are $8$-competitive: with the exception of the
+tasks with work smaller than $1/(np)$ we have increased each
+task's size by at most a factor of $2$; increasing the serial
+works of all tasks by a factor of $2$ obviously doubles the awake
+time that we achieve. Now consider the tasks with works at most
+$1/(np)$. The sum of their works is at most $1/p$, and the
+largest task has work $1$, and hence takes time at least $1/p$ to
+run.
+
+Another interesting assumption to remove is the assumption that
+we know the works of the parallel implementations of tasks: it
+turns out that, if we are willing to sacrifice a constant-factor
+in the competitive ratio, we do not even need to know the
+parallel works of the tasks before running them! Now we give an
+algorithm that is $4$-competitive with OPT, which \emph{does not
+use the size of the parallel implementations of tasks}: it uses
+the size of the serial tasks to decide which tasks to run, and
+then is told how long parallel tasks took to run after running
+them. We present this algorithm in Algorithm~\ref{alg:run}, which
+we call \defn{RUN}. We remark that the same techniques discussed
+above for removing the assumption that tasks are pre-sorted in
+THRESH could be used in RUN.
 
 \begin{algorithm}
-  \caption{JUSTRUNIT}
-  \label{alg:justrunit}
+  \caption{RUN}
+  \label{alg:run}
   \begin{algorithmic}
     \State \textbf{Input: } a list of tasks $\tau_1, \tau_2,
     \ldots, \tau_n$, sorted in descending order by
     $\sigma(\tau_i).$
-    \State \textbf{Output: } a schedule that is $3$-competitive
+    \State \textbf{Output: } a schedule that is $4$-competitive
     with the schedule FROST would make
     \State 
     \State $w_\pi \gets 0$
@@ -458,21 +342,52 @@ Algorithm~\ref{alg:justrunit}, which we call \defn{JUSTRUNIT}.
   \end{algorithmic}
 \end{algorithm}
 
-We remark on the very interesting property of JUSTRUNIT: it does
-not need to know $\pi(\tau_i)$ until after running $\tau_i$ in
-parallel, in which case it could of course have measured
-$\pi(\tau_i)$. JUSTRUNIT results in a strategy very similar to
-that given by THRESH. It differs slightly though, which results
-in the slightly worse competitive-ratio of $3$ versus FROST. 
+Note that RUN accesses $\pi(\tau_i)$ only after running $\tau_i$
+in parallel, after which it could of course have measured
+$\pi(\tau_i)$. RUN and THRESH give very similar strategies.
+RUN's strategy can be slightly worse than THRESH's though, so RUN
+has a slightly worse competitive ratio of $4$ versus OPT.
 
-Next we prove several impossibility results, which show that we
-cannot hope to substantially improve our algorithms.
+\begin{proposition}
+  RUN is $4$-competitive with OPT.
+\end{proposition}
+\begin{proof}
+  Let $\tau_{i_*}$ be the task with the largest serial work that
+  RUN schedules in serial.
+  Since $$\sum_{i < i_*} \pi(\tau_i) / p > \sigma(\tau_{i_*})$$
+  it is clearly impossible for OPT to achieve awake time better
+  than $\sigma(\tau_{i_*})$: if OPT schedules everything with
+  serial work at least $\sigma(\tau_{i_*})$ in parallel OPT's
+  awake time is at least $\sigma(\tau_{i_*})$, and if OPT
+  schedules any tasks with serial work at least
+  $\sigma(\tau_{i_*})$ in serial OPT's awake time is at least
+  $\sigma(\tau_{i_*})$.
 
-\subsection{Lower Bound on Deterministic Algorithms for Minimizing Awake Time}
+  The running time of OPT is also of course at least 
+  $$\sum_{i=1}^n \sigma(\tau_i)/p.$$
+
+  The running time of the parallel tasks for RUN is clearly at
+  most $2\sigma(\tau_{i_*})$.
+
+  The running time for the parallel tasks of RUN is, by the same
+  analysis presented in the analysis of THRESH, at most 
+  $$\sum_{i > i_*}\sigma(\tau_i) / p + \sigma(\tau_{i_*}).$$
+
+  Combined we have the upper bound of 
+  $$\sum_{i > i_*}\sigma(\tau_i) / p + 3\sigma(\tau_{i_*})$$ 
+  on the awake time of RUN. Using our lower bounds on the awake
+  time of OPT we have that RUN is $4$-competitive.
+
+\end{proof}
+
+\subsection{Lower Bound against Deterministic Algorithms}
+In this Subsection we prove several impossibility results, which
+show that we cannot hope to substantially improve our algorithms.
+
 We can specify a TAP in a table with a list of which tasks arrive
 at each time; we use the compact notation $(\sigma, \pi)\times m$
 to denote $m$ identical tasks with serial works $\sigma$ and
-parallel works $\pi$. It is clear that BAT is not
+parallel works $\pi$. It is clear that $\bat_1$ is not
 $(2-\epsilon)$-competitive for any $\epsilon > 0$; consider, for
 example the TAP given in Table~\ref{tab:2minusEps}, on which BAT
 achieves awake time $2$ and OPT achieves awake time
@@ -491,13 +406,12 @@ $\varepsilon$  & $(1, p) \times p/2$ \\ \hline
 \end{table}
 
 We might hope to achieve a $(1+\epsilon)$-competitive scheduling
-algorithm for this problem, which would arguably be much better
-than BAT. However, in this subsection we
-establish that it is impossible for an off-line deterministic
-scheduler to get a competitive ratio lower than $1.25$, even
-using preemption. That is, we show that for any deterministic
-algorithm ALG there is some input on which ALG has awake time at
-least $1.25$ times greater than OPT. 
+algorithm for the on-line scheduling problem, which would be
+better than $\bat_1$. However, we show that it is impossible
+for an off-line deterministic scheduler to get a competitive
+ratio lower than $1.25$, even using preemption. That is, we show
+that for any deterministic algorithm ALG there is some input on
+which ALG has awake time at least $1.25$ times greater than OPT. 
 
 In Table~\ref{tab:lowerboundFork1} and
 Table~\ref{tab:lowerboundFork2} we specify two TAPs.
@@ -562,16 +476,14 @@ a competitive ratio of lower than $1.25$.
 We remark that the numbers in this argument can clearly be
 optimized, to give an improved lower bound of about $1.36$ on
 competitive ratio. As this is asymptotically not interesting, and
-much messier, we decide to not give this better argument.
+much messier, we present the argument with cleaner numbers.
 
 \subsection{Lower Bound against Randomized Algorithms}
-We might that there is a randomized algorithm that gets a
-competitive ratio substantially better than any deterministic
-algorithm can, for example maybe there is a randomized algorithm
-that is $(1+\epsilon)$-competitive on any input with high
-probability, or a randomized algorithm with expected competitive
-ratio at most $(1+\epsilon)$ on any input. However, in this
-subsection we show that this is impossible.
+Often randomized algorithms can achieve improvements over
+deterministic algorithms, so we for example hope for a
+$(1+\epsilon)$-competitive randomized on-line scheduling
+algorithm that succeeds on any input with high probability.
+However, in this subsection we show that this is impossible.
 
 In particular, we demonstrate a lower-bound of $1.0625$ on the
 competitive ratio of any randomized off-line algorithm.
@@ -617,6 +529,5 @@ Because a randomly chosen TAP from this class of TAPs is bad for
 RAND with high probability in $n/p$, by the probabilistic method
 there is at least one TAP in this class of TAPs that is bad for
 RAND. 
-
 
 

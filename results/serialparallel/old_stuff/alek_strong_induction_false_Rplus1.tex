@@ -1,0 +1,153 @@
+Consider a TAP $\mathcal{T}$. 
+Let $\ell$ be the number of verge
+times for $\mathcal{T}$; note that $\ell \le n$ which in
+particular is finite. Let $t_i$ be the $i$-th verge time, and
+define $t_0$ (not a verge time) to be $-\infty$ for convenience.
+Let $T^{ALG}(a, b)$ denote the awake time of a scheduling algorithm
+ALG on the truncation of the TAP $\mathcal{T}$ that only consists
+of tasks arriving at times in $(a, b]$.
+
+Note that all tasks that arrive at times in $(t_0, t_1]$ arrive
+at time $t_1$. By definition of $\oracle_R$ we have that
+$\oracle_R$ is $R$-competitive with OPT on single-time-TAPs, i.e.
+\begin{equation}
+  \label{eq:same_single}
+  T^{BAT}(t_0,t_1) \le R \cdot T^{OPT}(t_0,t_1).
+\end{equation}
+
+An \defn{ALG-gap} is an interval of time $I$ of non-zero length where for
+all times in the interior of $I$ ALG has completed every
+task that has arrived thus far. Additionally, for an interval to
+be an ALG-gap the interval must contain no other intervals which
+are also ALG-gaps (i.e. it is a \enquote{maximal} interval
+satisfying our conditions).
+We say that a TAP is \defn{ALG-gap-free} if it contains no ALG-gaps.
+
+Now we prove an obvious property of OPT.
+\begin{claim}
+  \label{clm:OPT_finishes_first}
+  If there is a scheduling algorithm ALG that completes all tasks by
+  time $t_*$ then OPT finishes all tasks by time $t_*$.
+\end{claim}
+\begin{proof}
+  Say that ALG completes all tasks by time $t_*$. Let $t_0 < t_*$
+  be the most recent time that OPT has completed all tasks that
+  arrive before time $t_0$. If OPT has not finished all tasks by
+  time $t_*$ then it was acting sub-optimally, as it could steal
+  the strategy that ALG used on $[t_0, t_*]$ to achieve lower
+  awake time. In particular, for any tasks that arrive in $[t_0,
+  t_*]$ OPT could schedule them as ALG schedules them. 
+\end{proof}
+As an immediate consequence of Claim~\ref{clm:OPT_finishes_first}
+we have that any ALG-gap is a subset of an OPT-gap.
+
+Decomposing TAPs into gap-free subsets of the TAP is very useful.
+Part of the reason for this is the following fact:
+\begin{claim}
+  \label{clm:just_consider_gapless}
+  If an algorithm ALG achieves competitive ratio $r$ on
+  ALG-gap-free TAPs, then ALG achieves 
+  competitive ratio $r$ on arbitrary TAPs.
+\end{claim}
+\begin{proof}
+  We define an equivalence relation $\tau_i \sim \tau_j$ to mean
+  that no ALG-gap separates $\tau_i,\tau_j$. $\sim$ partitions
+  the tasks into sets $I_1, \ldots, I_m$. Let
+  $s(I_k)=\min_{\tau\in I_k}(t(\tau)), f(I_k)= \max_{\tau\in
+  I_k}(t(\tau)).$ We clearly have 
+  $$T^{ALG}(t_1, t_n) = \sum_{k=1}^m T^{ALG}(s(I_k), f(I_k)).$$
+  By Claim~\ref{clm:OPT_finishes_first}, ALG-gaps are subsets of OPT-gaps.
+  Hence, we also have 
+  $$T^{OPT}(t_1, t_n) = \sum_{k=1}^m T^{OPT}(s(I_k), f(I_k)).$$
+  On the truncation of the TAP to a gap-free set of tasks ALG is
+  $r$-competitive with OPT by assumption, so we have
+  $$T_{I_k}^{ALG}(s(I_k), f(I_k)) \le r\cdot
+  T_{I_k}^{OPT}(s(I_k), f(I_k)).$$
+  Summing this, we get $$T^{ALG}(t_1, t_n) \le r\cdot T^{OPT}(t_1,
+  t_n),$$ as desired.
+\end{proof}
+
+By Claim~\ref{clm:just_consider_gapless}, in order to bound BAT's
+competitive ratio, it suffices to consider TAPs
+without BAT-gaps. Note however that a TAP without
+BAT-gaps could still have OPT-gaps.
+
+We conclude our analysis of the competitive ratio of BAT in
+Theorem~\ref{thm:constant_competitive} with an inductive argument on
+the number of OPT-gaps in the TAP.
+First we establish the base case for the argument in
+Proposition~\ref{prop:no_optgaps}: we consider
+BAT's competitive ratio on an OPT-gap-free TAP.  
+
+\begin{proposition}
+  \label{prop:no_optgaps}
+  BAT is $(R+1)$-competitive on OPT-gap-free TAPs.
+\end{proposition}
+\begin{proof}
+  For an OPT-gap-free TAP (which is of course also a BAT-gap-free
+  TAP) we must have
+  \begin{equation}
+    \label{eq:opt_isnt_so_much_better}
+    T^{OPT}(t_1, t_n) \ge t_{n-1} - t_1 = T^{BAT}(t_1, t_{n-1}),
+  \end{equation}
+  because some tasks arrive at time $t_1$, and some tasks arrive
+  after $t_{n-1}$, so for both BAT and OPT to have no gaps their
+  awake times must satisfy the specified constraints.
+
+  Because BAT finishes all $q_{i}$ tasks that arrive at time $t_i$
+  by time $t_{i+1}$ we can actually always decompose
+  $T^{BAT}(t_1, t_n)$ as 
+  \begin{equation}
+    \label{eq:decomposeBAT}
+    T^{BAT}(t_1, t_n) = \sum_{i=1}^n T^{BAT}(t_{i-1}, t_i).
+  \end{equation}
+  By Equation~\eqref{eq:decomposeBAT}, and
+  Equation~\eqref{eq:same_single} we thus have 
+  \begin{equation}
+    \label{eq:decompose_rearanged}
+    T^{BAT}(t_1, t_n) \le T^{BAT}(t_1, t_{n-1}) + R \cdot T^{OPT}(t_{n-1}, t_n).
+  \end{equation}
+
+  Hence by Equation~\eqref{eq:opt_isnt_so_much_better} and
+  Equation~\eqref{eq:decompose_rearanged} we have
+  \begin{align*}
+    T^{BAT}(t_1, t_n) &\le T^{OPT}(t_1, t_n) + R\cdot T^{OPT}(t_{n-1}, t_n)\\
+                                 &\le (R+1)T^{OPT}(q_1, \ldots, q_\ell),
+  \end{align*}
+  as desired.
+\end{proof}
+
+\begin{theorem}
+  \label{thm:constant_competitive}
+  BAT is $2R$-competitive.
+\end{theorem}
+
+\begin{proof}
+  By Claim~\ref{clm:just_consider_gapless} without loss of
+  generality we consider TAPs without ALG-gaps.
+
+  The proof is by strong induction on the number of OPT-gaps. 
+  The base case of our induction is established in
+  Proposition~\ref{prop:no_optgaps}, which says that if there are $0$
+  OPT-gaps then BAT is $2$-competitive. 
+
+  Consider a TAP that has more than $k > 0$ OPT gaps, assume that
+  for any TAP with fewer than $k$ OPT gaps BAT is $2$-competitive
+  with OPT.
+
+  Let the first OPT-gap of the TAP start at time $t_*$.
+  Let $j$ be an index such that $t_j < t_* < t_{j+1}$.
+
+  Using our inductive hypothesis we have:
+  \begin{align*}
+  &T^{OPT}(t_1, t_n) \\
+  &= T^{OPT}(t_1, t_*) + T^{OPT}(t_*, t_n)\\
+  &\ge \frac{1}{R+1}\paren{T^{BAT}(t_1, t_*) + T^{BAT}(t_*, t_n)}\\
+  &=\frac{1}{R+1} T^{BAT}(q_1, \ldots, q_\ell).
+  \end{align*}
+
+  Rearranging we get the desired bound:
+  $$T^{BAT}(q_1, \ldots, q_\ell) \le (R+1) T^{OPT}(q_1, \ldots, q_\ell).$$
+\end{proof}
+
+
