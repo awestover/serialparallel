@@ -67,7 +67,9 @@ asymptotically optimal in this situation.
     \State
     
     \If{$B$ has no tasks running}
-      \State Sequentially greedily schedule all tasks $\tau \in \mathcal{T}_B$ on processors in $B$
+    \State Sequentially (on tasks sorted in descending order by
+    serial work) schedule all tasks $\tau \in \mathcal{T}_B$ on
+    processors in $B$
     \EndIf
     \State Schedule all tasks $\tau \in \mathcal{T}_A$ in parallel on all processors in $A$
 
@@ -100,29 +102,14 @@ particular on processors in $B$. Without loss of generality we
 restrict to considering DTAPs that consist only of tasks with
 cost ratio larger than least $\sqrt{p}$; considering DTAPs with
 other tasks increases SmallOPT's awake time without affecting
-CHUNK-$B$ awake time. We claim that by scheduling tasks greedily
-in batches AUG-$B$ awake time is $4$-competitive with SmallOPT's
-awake time. We define a \defn{$B$ start time} to be a time when
-$B$ has no work and there are tasks that have already arrived
-with cost ratio larger than $\sqrt{p}$ that $B$ is about to
-schedule. We define a \defn{$B$ finish time} to be a time when
-$B$ finishes a batch of tasks. Note that $B$ finish times and $B$
-start times certainly can coincide. 
-{\color{red} % this next part is baloney
-  \textbf{BALONEY this proof is}
-Let $T_t^{start}$ denote the
-difference between the $t$-th finish time and the $t$-th start
-time, i.e. the amount of time that greedy bin-packing takes to
-process the $t$-th batch of tasks. Let $T_t^{during}$ denote the
-amount of time that greedy bin-packing takes to process the tasks
-that arrived between the $t$-th start time and the $t$-th finish
-time. Clearly AUG-$B$ awake time is at most 
-$$\sum_{t} \left(T_t^{start} + T_t^{during}\right).$$
-On the other hand, greedy bin-packing is $2$-competitive with OPT
-for serial batches, so SmallOPT's awake time is at least 
-$$\sum_{t} \max(T_t^{start}/2, T_t^{during}/2).$$
-Hence AUG-$B$ awake time is $4$-competitive with SmallOPT's awake time.
-}
+CHUNK-$B$ awake time. We claim that by scheduling tasks
+sequentially in batches AUG-$B$ awake time is $4$-competitive with SmallOPT's
+awake time. But it is clear that our algorithm is the same as BAT using
+THRESH: we are scheduling tasks in batches,
+and within the batch we are scheduling the same tasks as OPT does
+in serial, and scheduling them sequentially. BAT using THRESH was
+shown to be $4$-competitive, so AUG-$B$ awake time is
+$4$-competitive with SmallOPT's awake time.
 
 But of course AUG's awake time is at most the sum of AUG-$A$
 awake time and AUG-$B$ awake time. So AUG's awake time is
