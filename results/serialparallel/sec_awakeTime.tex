@@ -77,6 +77,39 @@ can be computed, and in fact can be efficiently computed for $R \ge 2$.
   BAT is $2R$-competitive, as desired.
 \end{proof}
 
+In fact, if we assume no properties of $\oracle_R$ beyond that it
+always gives a schedule that is $R$-competitive with OPT on
+single-time TAPs, the $2R$ competitive ratio is tight.
+\begin{proposition}
+  \label{prop:thm_is_tight_ish}
+  Let $R < p/2$. Fix $\varepsilon > 0$.
+  There exists an $\oracle_R$ such that $\bat_R$ using this
+  $\oracle_R$ does not get competitive ratio $(2R-\varepsilon)$
+  on some TAP.
+\end{proposition}
+\begin{proof}
+  Consider an $\oracle_R$ that, if it gets $R$ tasks with serial
+  work $1$ and parallel work $p$, schedules the tasks one after
+  another on $\rho_1$. Clearly this is $R$-competitive with OPT:
+  OPT takes time $1$, while $\oracle_R$ takes time
+  $R$. Now consider a TAP where at time $0$ and at time
+  $\varepsilon$ a set of $R$ tasks with serial work $1$ and
+  parallel work $p$ arrive. Clearly OPT achieves awake time
+  $1+\varepsilon$ on this TAP, while $\bat_R$, using the
+  specified $\oracle_R$, achieves awake time $2R$.
+  Letting $\varepsilon' = \frac{\varepsilon}{1+\varepsilon}$ we
+  see that the competitive ratio of $\bat_R$ on this TAP is
+  $2R-\varepsilon'$. Letting $\varepsilon'' = \varepsilon/2$, we
+  have that $\bat_R$ does not get competitive ratio
+  $2R-\varepsilon''$ on this TAP.
+\end{proof}
+We remark that Proposition~\ref{prop:thm_is_tight_ish} does not
+imply that there is no $\oracle_R$ such that $\bat_R$ is
+$(2R-\varepsilon)$-competitive for some $\varepsilon > 0$ on all
+TAPs. But it does imply that we would need extra assumptions on
+$\oracle_R$ to get such a result. It also means that our
+reduction transformation is tight.
+
 \subsection{Off-line Approximation Algorithms}
 \label{subsec:offlineawaketime}
 In this Subsection we present algorithms for $\oracle_R$ for
@@ -254,6 +287,35 @@ If $x \le a + b$, and $y \ge a, y \ge b$, then obviously $x \le
 2y$. Thus, THRESH is $2$-competitive with FROST. 
 \end{proof}
 
+We now remark on the competitive-ratio of $\bat_2$ using THRESH.
+By Theorem~\ref{thm:constant_competitive} THRESH achieves
+competitive ratio at most $4$ on all TAPs. However,
+Proposition~\ref{prop:thm_is_tight_ish} \emph{does not} imply
+that THRESH must not be $3$-competitive. In fact, we believe the
+opposite:
+\begin{conjecture}
+  $\bat_2$ using THRESH is $3$-competitive with OPT.
+\end{conjecture}
+
+The competitive ratio of $\bat_2$ using THRESH is not (much) better than $3$:
+\begin{proposition}
+  There exists a TAP such that $\bat_2$ using THRESH has
+  competitive ratio larger than $3-3/p$.
+\end{proposition}
+\begin{proof}
+  Consider the following TAP: at time $0$ a completely unscalable
+  task with serial work $1$ arrives along with a fully scalable
+  task with parallel work $p-2$, and then at time $1/(p-1)$ a
+  completely unscalable task with serial work $1$ arrives.
+  $\bat_2$ using THRESH takes time $(p-2)/p + 1 + 1 = 3-2/p$ to
+  complete these tasks, whereas OPT takes time $1+1/(p-1)$.
+  The competitive ratio of $\bat_2$ here is thus
+  $$\frac{3-2/p}{1+1/(p-1)} = (3-2/p)(1-1/p) > 3-3/p.$$
+\end{proof}
+However, we have not been able to find a TAP where $\bat_2$ using
+THRESH exhibits competitive ratio larger than $3$, hence our
+conjecture. 
+
 The assumption that the input is pre-sorted might not be
 reasonable. If the tasks are not pre-sorted, then we must (at
 least approximately) sort them for our algorithm to achieve a
@@ -274,7 +336,7 @@ have serial works that can only take on $O(1)$ possible
 values, then the radix sort can be performed in-place in linear
 time, which results in a linear-time $2$-competitive algorithm. 
 
-If the serial works can take on more than $\Omega(1)$ possible
+If the serial works can take on more than $\omega(1)$ possible
 values, we can still achieve better than linearithmic running
 time by sacrificing competitive ratio. Let $1$ be the largest
 serial work of any task. We sort the tasks based on which bucket
@@ -306,23 +368,23 @@ we know the works of the parallel implementations of tasks: it
 turns out that, if we are willing to sacrifice a constant-factor
 in the competitive ratio, we do not even need to know the
 parallel works of the tasks before running them! Now we give an
-algorithm that is $4$-competitive with OPT, which \emph{does not
+algorithm that is $O(1)$-competitive with OPT, which \emph{does not
 use the size of the parallel implementations of tasks}: it uses
 the size of the serial tasks to decide which tasks to run, and
 then is told how long parallel tasks took to run after running
 them. We present this algorithm in Algorithm~\ref{alg:run}, which
-we call \defn{RUN}. We remark that the same techniques discussed
+we call \defn{$\run$} We remark that the same techniques discussed
 above for removing the assumption that tasks are pre-sorted in
-THRESH could be used in RUN.
+THRESH could be used in $\run$.
 
 \begin{algorithm}
-  \caption{RUN}
+  \caption{$\run$}
   \label{alg:run}
   \begin{algorithmic}
     \State \textbf{Input: } a list of tasks $\tau_1, \tau_2,
     \ldots, \tau_n$, sorted in descending order by
     $\sigma(\tau_i).$
-    \State \textbf{Output: } a schedule that is $4$-competitive
+    \State \textbf{Output: } a schedule that is $O(1)$-competitive
     with the schedule FROST would make
     \State 
     \State $w_\pi \gets 0$
@@ -342,18 +404,18 @@ THRESH could be used in RUN.
   \end{algorithmic}
 \end{algorithm}
 
-Note that RUN accesses $\pi(\tau_i)$ only after running $\tau_i$
+Note that $\run$ accesses $\pi(\tau_i)$ only after running $\tau_i$
 in parallel, after which it could of course have measured
-$\pi(\tau_i)$. RUN and THRESH give very similar strategies.
-RUN's strategy can be slightly worse than THRESH's though, so RUN
-has a slightly worse competitive ratio of $4$ versus OPT.
+$\pi(\tau_i)$. $\run$ and THRESH give very similar strategies.
+$\run$'s strategy can be slightly worse than THRESH's though, so $\run$
+has a slightly worse competitive ratio than THRESH versus OPT.
 
 \begin{proposition}
-  RUN is $4$-competitive with OPT.
+  $\run$ is $4$-competitive with OPT.
 \end{proposition}
 \begin{proof}
   Let $\tau_{i_*}$ be the task with the largest serial work that
-  RUN schedules in serial.
+  $\run$ schedules in serial.
   Since $$\sum_{i < i_*} \pi(\tau_i) / p > \sigma(\tau_{i_*})$$
   it is clearly impossible for OPT to achieve awake time better
   than $\sigma(\tau_{i_*})$: if OPT schedules everything with
@@ -366,19 +428,227 @@ has a slightly worse competitive ratio of $4$ versus OPT.
   The running time of OPT is also of course at least 
   $$\sum_{i=1}^n \sigma(\tau_i)/p.$$
 
-  The running time of the parallel tasks for RUN is clearly at
+  The running time of the parallel tasks for $\run$ is clearly at
   most $2\sigma(\tau_{i_*})$.
 
-  The running time for the parallel tasks of RUN is, by the same
+  The running time for the parallel tasks of $\run$ is, by the same
   analysis presented in the analysis of THRESH, at most 
   $$\sum_{i > i_*}\sigma(\tau_i) / p + \sigma(\tau_{i_*}).$$
 
   Combined we have the upper bound of 
   $$\sum_{i > i_*}\sigma(\tau_i) / p + 3\sigma(\tau_{i_*})$$ 
-  on the awake time of RUN. Using our lower bounds on the awake
-  time of OPT we have that RUN is $4$-competitive.
+  on the awake time of $\run$. Using our lower bounds on the awake
+  time of OPT we have that $\run$ is $4$-competitive.
 
 \end{proof}
+
+By modifying $\run$ we can get a better competitive ratio.
+The new version of $\run$ will have a parameter $\eta \in (0,1)$.
+The new version of $\run$ proceeds as follows:
+\begin{itemize}
+  \item Run tasks in parallel (in order from tasks with largest
+    serial work to smallest) until the amount of parallel work
+    exceeds $p \eta \sigma(\tau_{i_*})$ where $\tau_{i_*}$ is the
+    task currently running.
+  \item Using bin-packing schedule in serial the tasks
+    $\tau_{i_*+1}, \tau_{i_*+2}, \ldots, \tau_n$. Keep running
+    $\tau_{i_*}$, but redistribute its work so that it falls in
+    the gaps in the bin-packing, if possible, and so that it
+    falls evenly on top of the bins if placing it solely in the
+    gaps in impossible.
+\end{itemize}
+
+\begin{proposition}
+  \label{prop:runetaupper}
+  $\run(\eta)$ is $\max(1+1/\eta, 2+\eta)$-competitive.
+\end{proposition}
+\begin{proof}
+  \todo{ this proof is pretty sketchy, but has some interesting
+  ideas.}
+    Let $w_\pi^f$ be the final total parallel work performed by
+    $\run(\eta)$, divided by $p$. Let $\tau_{i_*}$ be the task
+    with the largest serial work that $\run(\eta)$ runs in
+    parallel.
+
+    We consider $2$ cases.
+
+  \noindent\textbf{Case 1:} $w_\pi^f \approx \eta \sigma(\tau_{i_*})$\\
+    OPT may choose to run all tasks $\tau_i$ with $i \le i_*$ in
+    parallel, like $\run(\eta)$ does. In this case we have
+    $$T^{OPT} \ge \eta \sigma(\tau_{i_*}) + \sum_{i>i_*}
+    \sigma(\tau_i)/p.$$
+    On the other hand 
+    $$T^{\run(\eta)} \le \eta \sigma(\tau_{i_*}) + \sum_{i>i_*}
+    \sigma(\tau_i)/p + \sigma(\tau_{i_*+1}) \le
+    (1+1/\eta)T^{OPT}.$$
+    OPT might also choose to run some task $\tau_i$ with $i
+    \le i_* $ in serial. This would make
+    $$T^{OPT} \ge \sigma(\tau_{i_*}).$$
+    On the other hand 
+    $$T^{RUN} \le \eta \sigma(\tau_{i_*}) + T^{OPT} \le
+    (1+1/\eta)T^{OPT},$$
+    \todo{because OPT can't beat our bin packing since its on
+    these small tasks.}
+
+    \noindent\textbf{Case 2:} $w_\pi^f \approx (\eta+1) \sigma(\tau_{i_*})$
+    Here we have $T^{OPT} \ge \sigma(\tau_{i_*}), T^{OPT} \ge
+    \sum_{i=1}^n \sigma(\tau_i)/p$.
+    In this case the task can probably fit in the cracks of our
+    bin-packing, if we assume somewhat good bin-packing this
+    would mean 
+    $$T^{\run(\eta)} \le (1+\eta)\sigma(\tau_{i_*}) +
+    \sum_{i=1}^n \sigma(\tau_i)/p.$$
+    So this would be $(2+\eta)$-competitive with OPT.
+\end{proof}
+\begin{proposition}
+  \label{prop:runetalower}
+  $\run(\eta)$ is not $(1 + (1-2/p)/\eta)$-competitive, and $\run$ is
+  not $(2+\eta)(1-3/p)$-competitive.
+\end{proposition}
+\begin{proof}
+  Consider the following TAP: at time $0$ two perfectly scalable
+  tasks arrive: one with serial work $\eta p$, the other with
+  serial work $1$. Clearly OPT takes time $\eta + 1/p$ to do both
+  tasks. On the other hand $\run(\eta)$ starts running the larger
+  task in parallel, and by the end of it has done parallel work
+  $\eta$. But this is at least $1\cdot \eta$, so $\run(\eta)$
+  runs the other task in serial, hence achieveing awake time
+  $1+\eta$. The cost ratio here is 
+  $$\frac{1+\eta}{1/p+\eta} \ge (1-1/(\eta p))(1+1/\eta) \ge
+  1+ \frac{1}{\eta} (1-2/p).$$
+
+ Now consider the following TAP: a task with serial work
+ $1+1/p$ and parallel work $p(1+1/p)$ arrives along with
+ $p+1$ perfectly scalable tasks with serial work $1$. Clearly OPT
+ has awake time $1+1/p + 2/p$ by running the biggest task in
+ serial along with $p-1$ tasks with serial work $1$, and then
+ after they all finish running the final $2$ tasks in parallel
+ across all the processors.
+ On the other hand, $\run(\eta)$ runs the biggest task in
+ parallel, and then runs the $p+1$ smaller tasks in serial so it
+ takes time $\eta + 1 + 1$. Hence $\run(\eta)$'s competitive
+ ratio on this TAP is $$\frac{\eta+2}{1+1/p+2/p}\ge
+ (\eta+2)(1-3/p).$$
+\end{proof}
+
+Combined, Proposition~\ref{prop:runetaupper} and
+Proposition~\ref{prop:runetalower} basically imply:
+\begin{corollary}
+  For $\eta=\frac{\sqrt{5}-1}{2}$, $\run(\eta)$ is
+  $\frac{3+\sqrt{5}}{2}$-competitive with OPT.
+  For all $\eta$, $\run(\eta)$ is not
+  $\left(\frac{3+\sqrt{5}}{2}-1/p\right)$-competitive.
+\end{corollary}
+\begin{proof}
+  It is clear that the competitive-ratio is minimized when
+  $$1+1/\eta = 2+\eta.$$
+  Which happens at $\eta=\frac{\sqrt{5}-1}{2}$.
+\end{proof}
+
+While $\run(\eta)$ can do remarkably well for the case where the
+parallel works are not known, it is not clear that $\run(\eta)$
+is optimal.
+\begin{proposition}
+  Any on-line scheduling algorithm for the variant of the game
+  where the parallel works are not known is worse than 
+  $2(1-1/p)$-competitive on some TAP.
+\end{proposition}
+\begin{proof}
+  Consider a TAP with $p+1$ tasks all having identical serial
+  work $1$, with $p$ tasks that have parallel work $p$ and a
+  single task that has parallel work $1$. 
+  OPT clearly achieves awake time $1+1/p$, whereas no on-line
+  algorithm can get awake time better than $2$ in general. 
+  Hence the competitive ratio is 
+  $$\frac{2}{1+1/p} \le 2(1-1/p).$$
+\end{proof}
+
+\subsection{Arbitrary speedup curves} 
+So far we have only considered the \defn{perfect} speedup curve,
+i.e. $x\mapsto x$, where splitting a parallel task amongst $x$
+processors results in each processor getting work $\pi(\tau)/x$.
+Note that although we have been assuming that the parallel
+implementations scale perfectly, we have not been assuming that
+the parallel implementations are work-efficient; note that if all
+parallel implementations were work-efficient and scaled perfectly
+then obviously every task should be scheduled in parallel across
+all the processors. In this Subsection we consider a
+generalization of the problem to non-perfect speedup curves.
+However, we do still impose some reasonable restrictions on the
+speedup curves. The speedup curves we consider will be sublinear,
+monotonically increasing functions $f: [p] \to [1,p]$, with $f(1)
+= 1$. In the generalized problem, we denote by $f_\tau$ the
+speedup curve associated with $\tau$, and still denote with
+$\sigma(\tau)$ and $\pi(\tau)$ the works of the serial and
+parallel implementations of $\tau$. Now however, if the task is
+run equally split in parallel across $k$ processors, the time it
+takes is $\pi(\tau) / f_\tau(k)$ per processor.
+
+It is clear that Theorem~\ref{thm:constant_competitive} still
+applies: if we have a scheduling algorithm $\oracle_R$ that is
+$R$-competitive with OPT in the off-line problem, then $\bat_R$
+is $2R$-competitive with OPT in the on-line problem. The task
+thus becomes to find algorithms for $\oracle_R$.
+
+There is still a straightforward algorithm for $\oracle_1$ in
+this case:
+\begin{enumerate}
+  \item Perform a brute force search over every
+possible subset of the tasks to be the set of tasks scheduled in
+parallel, and do a brute force search over every way to assign
+the serial tasks to processors. 
+
+\item While the amount of work assigned to all the tasks is not
+  even, we continue to assign parallel work as follows. Let $k$
+  be the current number of processors with the minimum amount of
+  work, let $\alpha, \beta$ be the minimum, and second lowest
+  amounts of works assigned to any processor. Find whichever task
+  scales the best on $k$ processors, and schedule $k(\beta -
+  \alpha)$ parallel work from this task to these $k$ processors,
+  or all the work that the task has if the task has less than
+  $k(\beta-\alpha)$ work. If the amount of work assigned to all
+  the tasks becomes even, then simply schedule all the remaining
+  work from the remaining parallel tasks evenly in parallel
+  across all the processors.
+\end{enumerate}
+Step 2 of this process is slightly more complex than previously,
+but the running time remains the same (asymptotically) as
+$(\Theta(p))^n$.
+
+Now we consider how to make efficient algorithms for the
+non-perfect speedup curves case. We prove a striking lower bound,
+that indicates that fundamentally different strategies are needed
+in this case.
+\begin{proposition}
+  Any (off-line) scheduler that does not ever schedule a task on
+  an intermediaite number of processors, i.e. a scheduler that
+  always either assigns a task to a single processor or runs the
+  task in parallel across all the processors, cannot achieve a
+  competitive ratio better than $\sqrt{p}$ versus OPT.
+\end{proposition}
+\begin{proof}
+  Consider a TAP where $\sqrt{p}$ identical tasks arrive at the
+  beginning, with the following characteristics: $\sigma(\tau) =
+  1$, $\pi(\tau) = 1$, and 
+  $$
+  f_\tau(k) = 
+  \begin{cases}
+    k & k \in [1,\sqrt{p}]\\
+    \sqrt{p} & k \in [\sqrt{p}, p].
+  \end{cases}$$
+  OPT clearly schedules all tasks in parallel on $\sqrt{p}$
+  processors, and hence achieves awake time $1/\sqrt{p}$.
+
+  A scheduler that schedules all tasks in serial achieves awake
+  time $1$. A scheduler that schedules all tasks in parallel
+  across all the processors achieves awake time
+  $\sqrt{p}/\sqrt{p} = 1.$
+  Either way, a scheduling algorithm that does not consider
+  scheduling tasks on intermediate numbers of processors has
+  competitive ratio $\sqrt{p}$ on this input.
+
+\end{proof}
+
 
 \subsection{Lower Bound against Deterministic Algorithms}
 In this Subsection we prove several impossibility results, which
@@ -405,13 +675,14 @@ $\varepsilon$  & $(1, p) \times p/2$ \\ \hline
 \end{tabular}
 \end{table}
 
-We might hope to achieve a $(1+\epsilon)$-competitive scheduling
+We might hope to achieve a $(1+\varepsilon)$-competitive scheduling
 algorithm for the on-line scheduling problem, which would be
-better than $\bat_1$. However, we show that it is impossible
-for an off-line deterministic scheduler to get a competitive
-ratio lower than $1.25$, even using preemption. That is, we show
-that for any deterministic algorithm ALG there is some input on
-which ALG has awake time at least $1.25$ times greater than OPT. 
+better than $\bat_1$ in terms of competitive ratio. However, we
+show that it is impossible for an off-line deterministic
+scheduler to get a competitive ratio lower than $1.25$, even
+using preemption. That is, we show that for any deterministic
+algorithm ALG there is some input on which ALG has awake time at
+least $1.25$ times greater than OPT. 
 
 In Table~\ref{tab:lowerboundFork1} and
 Table~\ref{tab:lowerboundFork2} we specify two TAPs.
@@ -474,9 +745,8 @@ Hence it is impossible for any deterministic algorithm to achieve
 a competitive ratio of lower than $1.25$.
 
 We remark that the numbers in this argument can clearly be
-optimized, to give an improved lower bound of about $1.36$ on
-competitive ratio. As this is asymptotically not interesting, and
-much messier, we present the argument with cleaner numbers.
+optimized; doing so gives an improved lower bound of about $1.36$
+on competitive ratio. 
 
 \subsection{Lower Bound against Randomized Algorithms}
 Often randomized algorithms can achieve improvements over
