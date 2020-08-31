@@ -1,18 +1,20 @@
 \section{Minimizing Awake Time on DTAPs} 
 \label{sec:awaketimeDeps}
+In this section we consider a generalization of the problem to
+the case where there are dependencies amongst the tasks. We
+first consider dependency trees, and then arbitrary dependency DAGs.
 
 \subsection{Off-line $\Omega(\sqrt{p})$ Lower Bound}
-In the unknown dependencies it is impossible to get an
+In the unknown dependencies case it is impossible to get an
 $O(1)$-competitive algorithm with the optimal algorithm that
 knows the dependencies.
 In particular, we give a DTAP with $n=p$ tasks, that can be
 processed in time $O(1)$ by an algorithm that knows the
-dependencies, but that takes time
-$\Omega(\sqrt{n})$ to be processed in the worst
-case by any deterministic algorithm that does not know the
-dependencies.
+dependencies, but that takes time $\Omega(\sqrt{p})$ to be
+processed in the worst case by any deterministic algorithm that
+does not know the dependencies.
 In fact, we can show any deterministic or randomized algorithm
-takes time $\Omega(\sqrt{n})$ to process this DTAP with high
+takes time $\Omega(\sqrt{p})$ to process this DTAP with high
 probability in $n$.
 
 We now construct and analyze the DTAP. We will make $n=p$ tasks.
@@ -45,11 +47,18 @@ Hence the scheduler takes time at least $1/8 \sqrt{n}$ with high
 probability in $n$, as desired.
 
 \subsection{Off-line $O(\sqrt{p})$-competitive algorithm}
+
+\todo{I think this proof might be baloney, cause I don't
+explicitely talk about the dependencies... The algorithm is
+almost certainly $O(\sqrt{p})$-competitive, just my analysis is
+no good.}
+
 We now give an on-line scheduling algorithm in
 Algorithm~\ref{alg:aug}, which we call \defn{AUG}, that is
 $O(\sqrt{p})$-competitive with the optimal off-line scheduling
 algorithm for the problem where there are unknown dependencies
-among the tasks.
+among the tasks, \textbf{but where the dependencies form a
+dependency-tree (not an arbitrary DAG)}.
 Recalling the $\Omega(\sqrt{p})$ lower bound on such an
 algorithm's competitive ratio, we have that our scheduler is
 asymptotically optimal in this situation.
